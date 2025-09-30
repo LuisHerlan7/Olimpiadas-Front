@@ -1,0 +1,197 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  button,
+  input,
+  select,
+  textarea {
+    @apply appearance-none bg-transparent border-0 outline-none;
+  }
+}
+
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .all-\[unset\] {
+    all: unset;
+  }
+}
+
+:root {
+  --localhost-roboto-bold-font-family: "Roboto", Helvetica;
+  --localhost-roboto-bold-font-size: 18px;
+  --localhost-roboto-bold-font-style: normal;
+  --localhost-roboto-bold-font-weight: 700;
+  --localhost-roboto-bold-letter-spacing: 0px;
+  --localhost-roboto-bold-line-height: 28px;
+  --localhost-roboto-medium-font-family: "Roboto", Helvetica;
+  --localhost-roboto-medium-font-size: 18px;
+  --localhost-roboto-medium-font-style: normal;
+  --localhost-roboto-medium-font-weight: 500;
+  --localhost-roboto-medium-letter-spacing: 0px;
+  --localhost-roboto-medium-line-height: 28px;
+  --localhost-roboto-regular-font-family: "Roboto", Helvetica;
+  --localhost-roboto-regular-font-size: 24px;
+  --localhost-roboto-regular-font-style: normal;
+  --localhost-roboto-regular-font-weight: 400;
+  --localhost-roboto-regular-letter-spacing: 0px;
+  --localhost-roboto-regular-line-height: 32px;
+  --localhost-roboto-semibold-font-family: "Roboto", Helvetica;
+  --localhost-roboto-semibold-font-size: 30px;
+  --localhost-roboto-semibold-font-style: normal;
+  --localhost-roboto-semibold-font-weight: 600;
+  --localhost-roboto-semibold-letter-spacing: 0px;
+  --localhost-roboto-semibold-line-height: 36px;
+  --localhost-semantic-heading-1-font-family: "Roboto", Helvetica;
+  --localhost-semantic-heading-1-font-size: 60px;
+  --localhost-semantic-heading-1-font-style: normal;
+  --localhost-semantic-heading-1-font-weight: 700;
+  --localhost-semantic-heading-1-letter-spacing: 0px;
+  --localhost-semantic-heading-1-line-height: 60px;
+  --localhost-semantic-heading-2-font-family: "Roboto", Helvetica;
+  --localhost-semantic-heading-2-font-size: 36px;
+  --localhost-semantic-heading-2-font-style: normal;
+  --localhost-semantic-heading-2-font-weight: 700;
+  --localhost-semantic-heading-2-letter-spacing: 0px;
+  --localhost-semantic-heading-2-line-height: 40px;
+  --localhost-semantic-heading-3-font-family: "Roboto", Helvetica;
+  --localhost-semantic-heading-3-font-size: 20px;
+  --localhost-semantic-heading-3-font-style: normal;
+  --localhost-semantic-heading-3-font-weight: 600;
+  --localhost-semantic-heading-3-letter-spacing: 0px;
+  --localhost-semantic-heading-3-line-height: 28px;
+  --localhost-semantic-heading-4-font-family: "Roboto", Helvetica;
+  --localhost-semantic-heading-4-font-size: 18px;
+  --localhost-semantic-heading-4-font-style: normal;
+  --localhost-semantic-heading-4-font-weight: 600;
+  --localhost-semantic-heading-4-letter-spacing: 0px;
+  --localhost-semantic-heading-4-line-height: 28px;
+  --localhost-semantic-heading-5-font-family: "Roboto", Helvetica;
+  --localhost-semantic-heading-5-font-size: 14px;
+  --localhost-semantic-heading-5-font-style: normal;
+  --localhost-semantic-heading-5-font-weight: 600;
+  --localhost-semantic-heading-5-letter-spacing: 0px;
+  --localhost-semantic-heading-5-line-height: 20px;
+  --localhost-semantic-input-font-family: "Roboto", Helvetica;
+  --localhost-semantic-input-font-size: 14px;
+  --localhost-semantic-input-font-style: normal;
+  --localhost-semantic-input-font-weight: 400;
+  --localhost-semantic-input-letter-spacing: 0px;
+  --localhost-semantic-input-line-height: normal;
+  --localhost-semantic-link-font-family: "Roboto", Helvetica;
+  --localhost-semantic-link-font-size: 18px;
+  --localhost-semantic-link-font-style: normal;
+  --localhost-semantic-link-font-weight: 700;
+  --localhost-semantic-link-letter-spacing: 0px;
+  --localhost-semantic-link-line-height: 28px;
+}
+
+:root {
+  --animate-spin: spin 1s linear infinite;
+}
+
+.animate-fade-in {
+  animation: fade-in 1s var(--animation-delay, 0s) ease forwards;
+}
+
+.animate-fade-up {
+  animation: fade-up 1s var(--animation-delay, 0s) ease forwards;
+}
+
+.animate-marquee {
+  animation: marquee var(--duration) infinite linear;
+}
+
+.animate-marquee-vertical {
+  animation: marquee-vertical var(--duration) linear infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 8s infinite;
+}
+
+.animate-spin {
+  animation: var(--animate-spin);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@keyframes image-glow {
+  0% {
+    opacity: 0;
+    animation-timing-function: cubic-bezier(0.74, 0.25, 0.76, 1);
+  }
+
+  10% {
+    opacity: 0.7;
+    animation-timing-function: cubic-bezier(0.12, 0.01, 0.08, 0.99);
+  }
+
+  to {
+    opacity: 0.4;
+  }
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade-up {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes shimmer {
+  0%,
+  90%,
+  to {
+    background-position: calc(-100% - var(--shimmer-width)) 0;
+  }
+
+  30%,
+  60% {
+    background-position: calc(100% + var(--shimmer-width)) 0;
+  }
+}
+
+@keyframes marquee {
+  0% {
+    transform: translate(0);
+  }
+
+  to {
+    transform: translateX(calc(-100% - var(--gap)));
+  }
+}
+
+@keyframes marquee-vertical {
+  0% {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(calc(-100% - var(--gap)));
+  }
+}
