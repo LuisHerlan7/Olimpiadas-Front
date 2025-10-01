@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { FaTrophy, FaUserPlus, FaChalkboardTeacher } from 'react-icons/fa';
 
 // Componente HeaderSection responsive
 const HeaderSection = (): JSX.Element => {
@@ -12,57 +13,48 @@ const HeaderSection = (): JSX.Element => {
   ];
 
   return (
-    <header className="w-full bg-black border-b-4 border-[#01012d] shadow-lg">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-black bg-opacity-70 backdrop-blur-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 lg:h-20">
+        <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 lg:w-12 lg:h-12 flex rounded-xl bg-gradient-to-br from-red-500 to-blue-600 items-center justify-center">
-              <div className="w-5 h-5 lg:w-6 lg:h-6 bg-white rounded-sm" />
-            </div>
+            <FaTrophy className="text-red-500 text-2xl" />
             <div className="flex flex-col">
-              <div className="font-bold text-lg lg:text-2xl text-white leading-tight">
+              <div className="font-bold text-lg text-white leading-tight">
                 O!Sansi
               </div>
-              <div className="text-xs lg:text-sm text-red-400 leading-tight">
+              <div className="text-xs text-red-400 leading-tight">
                 Olimpiadas Académicas
               </div>
             </div>
           </div>
 
           {/* Navegación - Oculto en móviles */}
-          <nav className="hidden md:flex items-center space-x-6 lg:space-x-8">
-            {navigationItems.map((item, index) => (
-              <a
-                key={index}
-                href={item.href}
-                className="font-medium text-white text-sm lg:text-base hover:text-gray-300 transition-colors duration-200"
-              >
-                {item.label}
-              </a>
-            ))}
+          <nav className="hidden md:flex items-center space-x-8">
+            <a href="#" className="text-white hover:text-red-400 transition-colors duration-200">
+              Inicio
+            </a>
+            <a href="#" className="text-white hover:text-red-400 transition-colors duration-200">
+              Noticias
+            </a>
+            <a href="#" className="text-white hover:text-red-400 transition-colors duration-200">
+              Registro
+            </a>
+            <a href="#" className="text-white hover:text-red-400 transition-colors duration-200">
+              Contacto
+            </a>
           </nav>
 
-          {/* Botón de login */}
-          <button className="bg-blue-800 hover:bg-blue-700 text-white px-4 py-2 lg:px-6 lg:py-2.5 rounded-lg font-medium text-sm lg:text-base transition-colors duration-200">
-            Iniciar Sesión
-          </button>
+          {/* Menú móvil */}
+          <div className="md:hidden">
+            <button className="text-white hover:text-red-400 transition-colors">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          </div>
         </div>
 
-        {/* Navegación móvil */}
-        <nav className="md:hidden pb-4">
-          <div className="flex flex-wrap gap-2">
-            {navigationItems.map((item, index) => (
-              <a
-                key={index}
-                href={item.href}
-                className="font-medium text-white text-sm hover:text-gray-300 transition-colors duration-200"
-              >
-                {item.label}
-              </a>
-            ))}
-          </div>
-        </nav>
       </div>
     </header>
   );
@@ -71,39 +63,39 @@ const HeaderSection = (): JSX.Element => {
 // Componente MainContentSection responsive
 const MainContentSection = () => {
   return (
-    <section className="w-full bg-gradient-to-b from-blue-900 via-black to-red-900 text-white py-12 lg:py-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-          {/* Contenido izquierdo */}
-          <div className="space-y-6 lg:space-y-8">
-            <header>
-              <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-normal text-blue-100 leading-relaxed">
-                Plataforma oficial de las Olimpiadas Académicas para colegios de
-                Bolivia. Desarrollado por la Universidad Mayor de San Simón
-                (UMSS).
-              </h1>
-            </header>
+    <section className="flex items-center justify-center min-h-screen pt-16 bg-gradient-to-b from-blue-900 to-red-900">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        {/* Título principal */}
+        <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-6">
+          Olimpiadas Académicas{' '}
+          <span className="bg-gradient-to-r from-red-500 via-yellow-400 to-green-500 bg-clip-text text-transparent">
+            Bolivia
+          </span>
+        </h1>
+        
+        <p className="text-lg sm:text-xl lg:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">Olimpiadas académicas de Bolivia</p>
+        {/* Subtítulo */}
+        <p className="text-lg sm:text-xl lg:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
+          Plataforma oficial de las Olimpiadas Académicas para colegios de Bolivia. 
+          Desarrollado por la Universidad Mayor de San Simón (UMSS).
+        </p>
 
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link
-                to="/registro"
-                className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 rounded-xl px-6 py-4 font-semibold text-white text-base lg:text-lg transition-colors duration-200"
-              >
-                <div className="w-5 h-5 bg-white rounded-sm" />
-                Registrar Estudiante
-              </Link>
+        {/* Botones */}
+        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center">
+          {/* Botón Registrar Estudiante */}
+          <Link
+            to="/registro"
+            className="group bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 flex items-center space-x-3 shadow-lg hover:shadow-xl"
+          >
+            <FaUserPlus className="text-xl" />
+            <span>Registrar Estudiante</span>
+          </Link>
 
-              <button className="flex items-center justify-center gap-2 border-2 border-white hover:bg-white hover:bg-opacity-10 rounded-xl px-6 py-4 font-semibold text-white text-base lg:text-lg transition-colors duration-200">
-                <div className="w-5 h-5 bg-white rounded-sm" />
-                Registro Docentes
-              </button>
-            </div>
-          </div>
-
-          {/* Ilustración derecha */}
-          <div className="flex justify-center lg:justify-end">
-            <div className="w-full max-w-md lg:max-w-lg h-64 lg:h-96 bg-gradient-to-br from-blue-600/20 to-red-600/20 rounded-2xl shadow-2xl" />
-          </div>
+          {/* Botón Registro Docentes */}
+          <button className="group bg-red-800 border-2 border-white hover:bg-red-900 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 flex items-center space-x-3 shadow-lg hover:shadow-xl">
+            <FaChalkboardTeacher className="text-xl" />
+            <span>Registro Docentes</span>
+          </button>
         </div>
       </div>
     </section>
@@ -488,13 +480,9 @@ const FooterSection = (): JSX.Element => {
 // Componente principal Home
 const Home: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-blue-900 to-red-900">
       <HeaderSection />
       <MainContentSection />
-      <ParticipantRegistrationSection />
-      <NewsSection />
-      <StatisticsSection />
-      <FooterSection />
     </div>
   );
 };

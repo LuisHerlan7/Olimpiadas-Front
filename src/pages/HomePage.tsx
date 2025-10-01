@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { FaTrophy, FaUserPlus, FaChalkboardTeacher } from 'react-icons/fa';
 
 // Componente HeaderSection responsive
 const HeaderSection = (): JSX.Element => {
@@ -12,19 +13,17 @@ const HeaderSection = (): JSX.Element => {
   ];
 
   return (
-    <header className="w-full bg-black border-b-4 border-[#01012d] shadow-lg">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-black bg-opacity-70 backdrop-blur-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 lg:h-20">
+        <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 lg:w-12 lg:h-12 flex rounded-xl bg-gradient-to-br from-red-500 to-blue-600 items-center justify-center">
-              <div className="w-5 h-5 lg:w-6 lg:h-6 bg-white rounded-sm" />
-            </div>
+            <FaTrophy className="text-red-500 text-2xl" />
             <div className="flex flex-col">
-              <div className="font-bold text-lg lg:text-2xl text-white leading-tight">
+              <div className="font-bold text-lg text-white leading-tight">
                 O!Sansi
               </div>
-              <div className="text-xs lg:text-sm text-red-400 leading-tight">
+              <div className="text-xs text-red-400 leading-tight">
                 Olimpiadas Académicas
               </div>
             </div>
@@ -36,7 +35,7 @@ const HeaderSection = (): JSX.Element => {
               <a
                 key={index}
                 href={item.href}
-                className="font-medium text-white text-sm lg:text-base hover:text-gray-300 transition-colors duration-200"
+                className="font-medium text-white text-sm lg:text-base hover:text-red-400 transition-colors duration-200"
               >
                 {item.label}
               </a>
@@ -44,9 +43,12 @@ const HeaderSection = (): JSX.Element => {
           </nav>
 
           {/* Botón de login */}
-          <button className="bg-blue-800 hover:bg-blue-700 text-white px-4 py-2 lg:px-6 lg:py-2.5 rounded-lg font-medium text-sm lg:text-base transition-colors duration-200">
+          <Link 
+            to="/login"
+            className="bg-blue-800 hover:bg-blue-700 text-white px-4 py-2 lg:px-6 lg:py-2.5 rounded-lg font-medium text-sm lg:text-base transition-colors duration-200"
+          >
             Iniciar Sesión
-          </button>
+          </Link>
         </div>
 
         {/* Navegación móvil */}
@@ -56,7 +58,7 @@ const HeaderSection = (): JSX.Element => {
               <a
                 key={index}
                 href={item.href}
-                className="font-medium text-white text-sm hover:text-gray-300 transition-colors duration-200"
+                className="font-medium text-white text-sm hover:text-red-400 transition-colors duration-200"
               >
                 {item.label}
               </a>
@@ -77,32 +79,43 @@ const MainContentSection = () => {
           {/* Contenido izquierdo */}
           <div className="space-y-6 lg:space-y-8">
             <header>
-              <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-normal text-blue-100 leading-relaxed">
-                Plataforma oficial de las Olimpiadas Académicas para colegios de
-                Bolivia. Desarrollado por la Universidad Mayor de San Simón
-                (UMSS).
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-6">
+                Olimpiadas Académicas{' '}
+                <span className="bg-gradient-to-r from-red-500 via-yellow-400 to-green-500 bg-clip-text text-transparent">
+                  Bolivia
+                </span>
               </h1>
+              <p className="text-sm sm:text-base lg:text-lg text-gray-300 mb-12 max-w-3xl leading-relaxed">
+                Plataforma oficial de las Olimpiadas Académicas para colegios de Bolivia. 
+                Desarrollado por la Universidad Mayor de San Simón (UMSS).
+              </p>
             </header>
 
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
                 to="/registro"
-                className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 rounded-xl px-6 py-4 font-semibold text-white text-base lg:text-lg transition-colors duration-200"
+                className="group bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 flex items-center space-x-3 shadow-lg hover:shadow-xl"
               >
-                <div className="w-5 h-5 bg-white rounded-sm" />
-                Registrar Estudiante
+                <FaUserPlus className="text-xl" />
+                <span>Registrar Estudiante</span>
               </Link>
 
-              <button className="flex items-center justify-center gap-2 border-2 border-white hover:bg-white hover:bg-opacity-10 rounded-xl px-6 py-4 font-semibold text-white text-base lg:text-lg transition-colors duration-200">
-                <div className="w-5 h-5 bg-white rounded-sm" />
-                Registro Docentes
+              <button className="group bg-red-800 border-2 border-white hover:bg-red-900 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 flex items-center space-x-3 shadow-lg hover:shadow-xl">
+                <FaChalkboardTeacher className="text-xl" />
+                <span>Registro Docentes</span>
               </button>
             </div>
           </div>
 
           {/* Ilustración derecha */}
           <div className="flex justify-center lg:justify-end">
-            <div className="w-full max-w-md lg:max-w-lg h-64 lg:h-96 bg-gradient-to-br from-blue-600/20 to-red-600/20 rounded-2xl shadow-2xl" />
+            <div className="w-full max-w-md lg:max-w-lg h-64 lg:h-96 rounded-2xl shadow-2xl overflow-hidden">
+              <img 
+                src="/Imagenes/estudianteshome.png" 
+                alt="Estudiantes en las Olimpiadas Académicas" 
+                className="w-full h-full object-cover"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -218,7 +231,7 @@ const NewsSection = (): JSX.Element => {
   const newsData = [
     {
       id: 1,
-      image: "https://via.placeholder.com/400x200/2563eb/ffffff?text=Convocatoria",
+      image: "/Imagenes/aperturarinscripciones.png",
       category: "Convocatoria",
       categoryColor: "bg-blue-800",
       categoryTextColor: "text-white",
@@ -228,7 +241,7 @@ const NewsSection = (): JSX.Element => {
     },
     {
       id: 2,
-      image: "https://via.placeholder.com/400x200/f59e0b/ffffff?text=Resultados",
+      image: "/Imagenes/ganadoresolimpiadas.png",
       category: "Resultados",
       categoryColor: "bg-amber-500",
       categoryTextColor: "text-gray-900",
@@ -238,7 +251,7 @@ const NewsSection = (): JSX.Element => {
     },
     {
       id: 3,
-      image: "https://via.placeholder.com/400x200/059669/ffffff?text=UMSS",
+      image: "/Imagenes/nuevasmodalidades.png",
       category: "UMSS",
       categoryColor: "bg-emerald-600",
       categoryTextColor: "text-white",
