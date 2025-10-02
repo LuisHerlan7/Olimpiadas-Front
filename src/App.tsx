@@ -19,7 +19,7 @@ function App() {
           <Route path="/olimpista" element={<OlimpistaHome />} />
           <Route path="/encargado" element={<EncargadoHome />} />
           <Route path="/administrador" element={<AdministradorHome />} />
-          <Route path="/visualizar-estudiantes" element={<VisualizarEstudiantes />} />
+          <Route path="/visualizarEstudiantes" element={<VisualizarEstudiantes />} />
         </Routes>
       </div>
     </Router>
