@@ -1,7 +1,22 @@
 import React from 'react';
 import { clsx } from 'clsx';
 
-const Input = ({ 
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label?: string;
+  type?: string;
+  placeholder?: string;
+  value?: string | number;
+  onChange?: React.ChangeEventHandler<HTMLInputElement>;
+  error?: string;
+  success?: string;
+  required?: boolean;
+  disabled?: boolean;
+  className?: string;
+  icon?: React.ComponentType<{ size?: number; className?: string }>;
+  helperText?: string;
+}
+
+const Input: React.FC<InputProps> = ({ 
   label, 
   type = 'text', 
   placeholder, 

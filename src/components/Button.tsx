@@ -1,7 +1,20 @@
 import React from 'react';
-import { clsx } from 'clsx';
+import clsx from 'clsx';
 
-const Button = ({ 
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  children: React.ReactNode;
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'success' | 'warning' | 'error';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
+  disabled?: boolean;
+  loading?: boolean;
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
+  type?: 'button' | 'submit' | 'reset';
+  className?: string;
+  icon?: React.ComponentType<{ size?: number; className?: string }>;
+  iconPosition?: 'left' | 'right';
+}
+
+const Button: React.FC<ButtonProps> = ({ 
   children, 
   variant = 'primary', 
   size = 'md', 
