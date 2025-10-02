@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Search, UserPlus } from "lucide-react";
+import { Link } from "react-router-dom";
 
 type StudentStatus = "Activo" | "Pendiente" | "Inactivo";
 
@@ -63,7 +64,7 @@ const studentsData: Student[] = [
   },
 ];
 
-export default function Students() {
+export default function VisualizarEstudiantes() {
   const [students] = useState(studentsData);
 
   const statusColors: Record<StudentStatus, string> = {
@@ -78,10 +79,12 @@ export default function Students() {
       <header className="bg-white shadow-md px-6 py-4 flex justify-between items-center">
         <h1 className="text-xl font-bold text-blue-600">O!Sansi</h1>
         <nav className="space-x-6 text-gray-600 font-medium">
-          <a href="#">Dashboard</a>
-          <a href="#" className="text-blue-600 font-semibold">Estudiantes</a>
-          <a href="#">Competencias</a>
-          <a href="#">Resultados</a>
+          <Link to="/">Dashboard</Link>
+          <Link to="/visualizar-estudiantes" className="text-blue-600 font-semibold">
+            Estudiantes
+          </Link>
+          <Link to="/competencias">Competencias</Link>
+          <Link to="/resultados">Resultados</Link>
         </nav>
         <button className="bg-blue-600 text-white px-4 py-2 rounded-lg">
           Admin
