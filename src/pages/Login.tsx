@@ -1,16 +1,52 @@
 import React, { useState } from "react";
 import { FaUser, FaLock, FaEye, FaEyeSlash, FaEnvelope } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { authService } from "../services/authService";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPwd, setShowPwd] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: autenticar y redirigir según rol (olimpista/encargado/administrador)
-    console.log("login:", { email, password });
+    setError("");
+    setLoading(true);
+
+    try {
+      const result = await authService.login(email, password);
+      
+      if (result.success && result.data?.user && result.data?.token) {
+        // Guardar datos del usuario
+        authService.storeUser(result.data.user, result.data.token);
+        
+        // Redirigir según el rol
+        switch (result.data.user.role) {
+          case 'administrador':
+            navigate('/administrador');
+            break;
+          case 'encargado':
+            navigate('/encargado');
+            break;
+          case 'olimpista':
+            navigate('/olimpista');
+            break;
+          default:
+            navigate('/');
+        }
+      } else {
+        setError(result.message || 'Error al iniciar sesión');
+      }
+    } catch (error) {
+      console.error('Error en login:', error);
+      setError('Error de conexión con el servidor');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -58,6 +94,13 @@ const Login: React.FC = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Mensaje de error */}
+            {error && (
+              <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-3 text-red-200 text-sm">
+                {error}
+              </div>
+            )}
+
             {/* Campo Email */}
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -70,6 +113,7 @@ const Login: React.FC = () => {
                 placeholder="Ingrese su correo institucional"
                 className="w-full pl-10 pr-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
                 required
+                disabled={loading}
               />
             </div>
 
@@ -85,11 +129,13 @@ const Login: React.FC = () => {
                 placeholder="Contraseña"
                 className="w-full pl-10 pr-12 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
                 required
+                disabled={loading}
               />
               <button
                 type="button"
                 onClick={() => setShowPwd(!showPwd)}
                 className="absolute right-3 top-3 text-white/60 hover:text-white transition-colors"
+                disabled={loading}
               >
                 {showPwd ? <FaEyeSlash /> : <FaEye />}
               </button>
@@ -98,9 +144,10 @@ const Login: React.FC = () => {
             {/* Botón Ingresar */}
             <button
               type="submit"
-              className="w-full py-3 rounded-lg text-white font-semibold bg-gradient-to-r from-blue-600 to-red-600 hover:from-blue-700 hover:to-red-700 transition-all duration-300 transform hover:scale-105 shadow-lg"
+              disabled={loading}
+              className="w-full py-3 rounded-lg text-white font-semibold bg-gradient-to-r from-blue-600 to-red-600 hover:from-blue-700 hover:to-red-700 transition-all duration-300 transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
-              Ingresar
+              {loading ? 'Iniciando sesión...' : 'Ingresar'}
             </button>
 
             {/* Enlaces */}
