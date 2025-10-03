@@ -188,14 +188,21 @@ const ParticipantRegistrationSection = (): JSX.Element => {
                 </ul>
 
                 {/* Botón */}
-                <button
-                  onClick={() => handleRegistration(card.id)}
-                  className="w-full bg-white hover:bg-gray-50 rounded-lg py-3 font-semibold transition-colors duration-200"
-                >
-                  <span className={card.buttonTextColor}>
-                    {card.buttonText}
-                  </span>
-                </button>
+                {card.id === 'coordinators' ? (
+                  <Link
+                    to="/registro-encargado"
+                    className="w-full bg-white hover:bg-gray-50 rounded-lg py-3 font-semibold transition-colors duration-200 flex items-center justify-center"
+                  >
+                    <span className={card.buttonTextColor}>{card.buttonText}</span>
+                  </Link>
+                ) : (
+                  <button
+                    onClick={() => handleRegistration(card.id)}
+                    className="w-full bg-white hover:bg-gray-50 rounded-lg py-3 font-semibold transition-colors duration-200"
+                  >
+                    <span className={card.buttonTextColor}>{card.buttonText}</span>
+                  </button>
+                )}
               </div>
             </article>
           ))}
