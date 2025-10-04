@@ -18,24 +18,33 @@ const Login: React.FC = () => {
     setLoading(true);
 
     try {
+      console.log('Iniciando login...');
       const result = await authService.login(email, password);
+      console.log('Resultado del login:', result);
       
       if (result.success && result.data?.user && result.data?.token) {
         // Guardar datos del usuario
         authService.storeUser(result.data.user, result.data.token);
         
+        console.log('Usuario logueado:', result.data.user);
+        console.log('Rol del usuario:', result.data.user.role);
+        
         // Redirigir según el rol
         switch (result.data.user.role) {
           case 'administrador':
+            console.log('Redirigiendo a administrador');
             navigate('/administrador');
             break;
           case 'encargado':
+            console.log('Redirigiendo a encargado');
             navigate('/encargado');
             break;
           case 'olimpista':
+            console.log('Redirigiendo a olimpista');
             navigate('/olimpista');
             break;
           default:
+            console.log('Rol no reconocido, redirigiendo a home');
             navigate('/');
         }
       } else {

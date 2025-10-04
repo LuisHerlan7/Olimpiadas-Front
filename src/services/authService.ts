@@ -22,7 +22,21 @@ export interface LoginResponse {
     };
     token: string;
   };
-  token?: string;
+}
+
+export interface RegisterResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    user: {
+      id: string;
+      email: string;
+      role: string;
+      nombre: string;
+      apellido: string;
+    };
+    token: string;
+  };
 }
 
 export const authService = {
@@ -68,5 +82,31 @@ export const authService = {
   storeUser: (user: any, token: string) => {
     localStorage.setItem('user', JSON.stringify(user));
     localStorage.setItem('token', token);
+  },
+
+  register: async (email: string, password: string, nombre: string, apellido: string, role: string): Promise<RegisterResponse> => {
+    try {
+      console.log('Intentando registrar usuario:', { email, role });
+      
+      const response = await authApi.post('/auth/register', {
+        email,
+        password,
+        nombre,
+        apellido,
+        role,
+      });
+      
+      console.log('Respuesta del registro:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error completo en registro:', error);
+      console.error('Error response:', error.response);
+      console.error('Error message:', error.message);
+      
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message || 'Error de conexión con el servidor',
+      };
+    }
   },
 };
