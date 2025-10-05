@@ -1,8 +1,26 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+
+interface UsuarioSession {
+  role?: string;
+  nombre?: string;
+  apellido?: string;
+  email?: string;
+}
 
 const Header: React.FC = () => {
   const location = useLocation();
+
+  const [usuario, setUsuario] = useState<UsuarioSession | null>(null);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('usuario');
+      if (raw) setUsuario(JSON.parse(raw));
+    } catch (err) {
+      console.warn('No se pudo leer usuario de localStorage', err);
+    }
+  }, []);
 
   return (
     <header className="bg-white shadow-sm">
@@ -64,11 +82,17 @@ const Header: React.FC = () => {
             </Link>
           </nav>
 
-          {/* Login Button */}
+          {/* Login / Usuario */}
           <div className="flex items-center space-x-4">
-            <button className="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
-              Iniciar Sesión
-            </button>
+            {usuario ? (
+              <Link to={usuario.role === 'encargado' ? '/encargado' : '/'} className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-primary-600 hover:bg-gray-50 transition-colors">
+                {usuario.nombre ? `${usuario.nombre} ${usuario.apellido ?? ''}` : 'Usuario'}
+              </Link>
+            ) : (
+              <Link to="/login" className="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                Iniciar Sesión
+              </Link>
+            )}
           </div>
 
           {/* Mobile menu button */}

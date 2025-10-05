@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 interface EncargadoForm {
   nombre: string;
@@ -125,11 +125,29 @@ const RegistroEncargado: React.FC = () => {
     return Object.keys(next).length === 0;
   };
 
+  const navigate = useNavigate();
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
     console.log('Registro Encargado payload:', form);
-    alert('Registro enviado (ver consola)');
+
+    // Simulate saving the encargado to server and set session
+    const encargadoSession = {
+      role: 'encargado',
+      nombre: form.nombre,
+      apellido: form.apellido,
+      email: form.email,
+      area: form.area,
+    };
+    try {
+      localStorage.setItem('usuario', JSON.stringify(encargadoSession));
+    } catch (err) {
+      console.error('No se pudo guardar la sesión en localStorage', err);
+    }
+
+    // Redirect to EncargadoHome
+    navigate('/encargado');
   };
 
   return (
