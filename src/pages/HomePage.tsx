@@ -100,10 +100,13 @@ const MainContentSection = () => {
                 <span>Registrar Estudiante</span>
               </Link>
 
-              <button className="group bg-red-800 border-2 border-white hover:bg-red-900 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 flex items-center space-x-3 shadow-lg hover:shadow-xl">
-                <FaChalkboardTeacher className="text-xl" />
-                <span>Registro Docentes</span>
-              </button>
+              {/* reemplaza el botón existente por un Link alrededor */}
+              <Link to="/registro-docentes" className="inline-block">
+                <button className="group bg-red-800 border-2 border-white hover:bg-red-900 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 flex items-center space-x-3 shadow-lg hover:shadow-xl">
+                  <FaChalkboardTeacher className="text-xl" />
+                  <span>Registro Docentes</span>
+                </button>
+              </Link>
             </div>
           </div>
 
