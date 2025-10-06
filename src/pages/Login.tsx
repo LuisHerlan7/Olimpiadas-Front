@@ -33,7 +33,7 @@ const Login: React.FC = () => {
         switch (result.data.user.role) {
           case 'administrador':
             console.log('Redirigiendo a administrador');
-            navigate('/administrador');
+            navigate('/administrador', { replace: true });
             break;
           case 'encargado':
             console.log('Redirigiendo a encargado');

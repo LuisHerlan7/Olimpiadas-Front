@@ -7,6 +7,7 @@ import RegistroEncargado from './pages/encargado/RegistroEncargado';
 import OlimpistaHome from './pages/olimpista/OlimpistaHome';
 import EncargadoHome from './pages/encargado/EncargadoHome';
 import AdministradorHome from './pages/administrador/AdministradorHome';
+import VisualizarEstudiantes from './pages/administrador/Estudiantesvista';
 
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
           <Route path="/olimpista" element={<OlimpistaHome />} />
           <Route path="/encargado" element={<EncargadoHome />} />
           <Route path="/administrador" element={<AdministradorHome />} />
+          <Route path="/visualizar-estudiantes" element={<VisualizarEstudiantes />} />
           
         </Routes>
       </div>
