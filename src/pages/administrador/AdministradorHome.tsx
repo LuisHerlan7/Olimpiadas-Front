@@ -52,6 +52,7 @@ export default function AdministradorHome() {
         "Gestionar los participantes inscritos en las olimpiadas.",
       button: "Gestionar",
       color: "bg-red-100 text-red-600 hover:bg-red-200",
+      path: "/visualizar-estudiantes",
     },
   ];
 
@@ -119,11 +120,20 @@ export default function AdministradorHome() {
               <h3 className="font-bold text-gray-800 text-lg">{card.title}</h3>
               <p className="text-sm text-gray-500 mt-2">{card.description}</p>
             </div>
-            <button
-              className={`mt-6 ${card.color} font-semibold px-4 py-2 rounded-lg transition`}
-            >
-              {card.button}
-            </button>
+            {"path" in card && card.path ? (
+              <Link
+                to={card.path}
+                className={`mt-6 inline-block ${card.color} font-semibold px-4 py-2 rounded-lg transition`}
+              >
+                {card.button}
+              </Link>
+            ) : (
+              <button
+                className={`mt-6 ${card.color} font-semibold px-4 py-2 rounded-lg transition`}
+              >
+                {card.button}
+              </button>
+            )}
           </div>
         ))}
       </main>
