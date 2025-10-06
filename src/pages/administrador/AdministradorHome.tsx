@@ -1,171 +1,138 @@
-import { useState } from "react";
-import { Search, UserPlus } from "lucide-react";
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { LogOut } from "lucide-react";
 
-type StudentStatus = "Activo" | "Pendiente" | "Inactivo";
+export default function AdministradorHome() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
-interface Student {
-  id: string;
-  name: string;
-  school: string;
-  subject: string;
-  course: string;
-  status: StudentStatus;
-}
-
-const studentsData: Student[] = [
-  {
-    id: "EST-2024-001",
-    name: "Ana María Gutierrez",
-    school: "UE: San Simón",
-    subject: "Matemáticas",
-    course: "5° Secundaria",
-    status: "Activo",
-  },
-  {
-    id: "EST-2024-002",
-    name: "Carlos Mendoza López",
-    school: "Colegio Nacional Bolívar",
-    subject: "Física",
-    course: "5° Secundaria",
-    status: "Activo",
-  },
-  {
-    id: "EST-2024-003",
-    name: "María Elena Vargas",
-    school: "UE: Adventista",
-    subject: "Química",
-    course: "4° Secundaria",
-    status: "Pendiente",
-  },
-  {
-    id: "EST-2024-004",
-    name: "Diego Fernández",
-    school: "Colegio La Salle",
-    subject: "Informática",
-    course: "5° Secundaria",
-    status: "Activo",
-  },
-  {
-    id: "EST-2024-005",
-    name: "Lucía Morales Paz",
-    school: "UE: Sagrado Corazón",
-    subject: "Biología",
-    course: "3° Secundaria",
-    status: "Activo",
-  },
-  {
-    id: "EST-2024-006",
-    name: "Roberto Silva Cruz",
-    school: "Colegio Alemán",
-    subject: "Matemáticas",
-    course: "5° Secundaria",
-    status: "Inactivo",
-  },
-];
-
-export default function VisualizarEstudiantes() {
-  const [students] = useState(studentsData);
-
-  const statusColors: Record<StudentStatus, string> = {
-    Activo: "bg-green-100 text-green-700",
-    Pendiente: "bg-yellow-100 text-yellow-700",
-    Inactivo: "bg-red-100 text-red-700",
+  const handleLogout = () => {
+    localStorage.removeItem("token"); // ejemplo si usas token
+    navigate("/"); // redirige al homepage
   };
+
+  const cards = [
+    {
+      title: "Registrar Evaluadores",
+      description:
+        "Agregar nuevos evaluadores al sistema y gestionar sus datos.",
+      button: "Gestionar",
+      color: "bg-red-100 text-red-600 hover:bg-red-200",
+    },
+    {
+      title: "Asignar Evaluadores",
+      description:
+        "Asignar evaluadores a las áreas de competencia correspondientes.",
+      button: "Gestionar",
+      color: "bg-red-100 text-red-600 hover:bg-red-200",
+    },
+    {
+      title: "Competencias",
+      description:
+        "Crear, modificar y eliminar áreas de competencia y sus niveles.",
+      button: "Gestionar",
+      color: "bg-red-100 text-red-600 hover:bg-red-200",
+    },
+    {
+      title: "Informes",
+      description: "Revisar y recibir informes académicos y de resultados.",
+      button: "Ver Informes",
+      color: "bg-red-100 text-red-600 hover:bg-red-200",
+    },
+    {
+      title: "Resultados",
+      description:
+        "Administrar los resultados de las competencias en el sistema.",
+      button: "Gestionar",
+      color: "bg-red-100 text-red-600 hover:bg-red-200",
+    },
+    {
+      title: "Estudiantes",
+      description:
+        "Gestionar los participantes inscritos en las olimpiadas.",
+      button: "Gestionar",
+      color: "bg-red-100 text-red-600 hover:bg-red-200",
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* HEADER */}
-      <header className="bg-white shadow-md px-6 py-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold text-blue-600">O!Sansi</h1>
+      <header className="bg-white shadow-md px-6 py-4 flex justify-between items-center relative">
+        <div className="flex items-center gap-2">
+          <h1 className="text-xl font-bold text-blue-600">Oh!Sansi</h1>
+          <span className="text-sm text-gray-500">
+            Olimpiadas Académicas
+          </span>
+        </div>
+
         <nav className="space-x-6 text-gray-600 font-medium">
-          <Link to="/">Dashboard</Link>
-          <Link to="/visualizar-estudiantes" className="text-blue-600 font-semibold">
-            Estudiantes
+          <Link to="/" className="text-red-600 font-semibold">
+            Inicio
           </Link>
+          <Link to="/visualizar-estudiantes">Estudiantes</Link>
           <Link to="/competencias">Competencias</Link>
           <Link to="/resultados">Resultados</Link>
         </nav>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg">
-          Admin
-        </button>
+
+        <div className="relative">
+          <button
+            onClick={() => setMenuOpen((prev) => !prev)}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+          >
+            Hola, Adriana
+          </button>
+
+          {menuOpen && (
+            <div className="absolute right-0 top-full mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-xl z-[9999]">
+              <button
+                onClick={handleLogout}
+                className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-red-100 hover:text-red-600 transition"
+              >
+                <LogOut size={18} className="mr-2" />
+                Cerrar sesión
+              </button>
+            </div>
+          )}
+        </div>
       </header>
 
-      {/* BANNER */}
-      <section className="bg-white shadow-sm mx-6 mt-6 p-6 rounded-xl">
-        <h2 className="text-xl font-bold text-red-600">Registro de Estudiantes</h2>
-        <p className="text-gray-500">
-          Gestión completa de participantes en las Olimpiadas Académicas de Bolivia
+      {/* HERO / PANEL */}
+      <section className="relative bg-white shadow-sm mx-6 mt-6 p-8 rounded-xl text-center">
+        <h2 className="text-2xl font-bold text-gray-800">
+          Panel de Administrador
+        </h2>
+        <p className="text-gray-500 mt-2">
+          Desde aquí puedes gestionar el sistema de Olimpiadas: evaluadores,
+          áreas, niveles, unidades educativas y participantes.
         </p>
-
-        <div className="mt-4 flex flex-wrap gap-4 items-center">
-          <div className="relative w-72">
-            <Search className="absolute top-2.5 left-2 text-gray-400" size={18} />
-            <input
-              type="text"
-              placeholder="Buscar estudiante..."
-              className="pl-8 pr-4 py-2 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-          </div>
-
-          <select className="border rounded-lg px-3 py-2">
-            <option>Todas las áreas</option>
-          </select>
-          <select className="border rounded-lg px-3 py-2">
-            <option>Todos los cursos</option>
-          </select>
-
-          <select className="border rounded-lg px-3 py-2">
-            <option>Nombre (A-Z)</option>
-          </select>
-
-          <button className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg">
-            <UserPlus size={18} /> Nuevo Estudiante
-          </button>
-        </div>
       </section>
 
-      {/* STUDENT CARDS */}
-      <main className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
-        {students.map((student) => (
+      {/* CARDS GRID */}
+      <main className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-8">
+        {cards.map((card, index) => (
           <div
-            key={student.id}
-            className="bg-white shadow-md rounded-xl p-4 flex flex-col gap-2"
+            key={index}
+            className="bg-white shadow-md rounded-xl p-6 flex flex-col justify-between border border-gray-100 hover:shadow-lg transition"
           >
-            <div className="flex justify-between items-center">
-              <h3 className="font-bold text-gray-800">{student.name}</h3>
-              <span
-                className={`text-xs px-3 py-1 rounded-full ${statusColors[student.status]}`}
-              >
-                {student.status}
-              </span>
+            <div>
+              <h3 className="font-bold text-gray-800 text-lg">{card.title}</h3>
+              <p className="text-sm text-gray-500 mt-2">{card.description}</p>
             </div>
-            <p className="text-sm text-gray-500">ID: {student.id}</p>
-            <p className="text-sm text-gray-600">{student.school}</p>
-            <p className="text-sm text-gray-600">{student.subject}</p>
-            <p className="text-sm text-gray-600">{student.course}</p>
-            <button className="mt-2 bg-blue-600 text-white py-2 rounded-lg text-sm">
-              Ver Detalles
+            <button
+              className={`mt-6 ${card.color} font-semibold px-4 py-2 rounded-lg transition`}
+            >
+              {card.button}
             </button>
           </div>
         ))}
       </main>
 
-      {/* PAGINATION */}
-      <div className="flex justify-center items-center gap-2 my-6">
-        <button className="px-3 py-1 rounded-lg border">{"<"}</button>
-        <button className="px-3 py-1 rounded-lg bg-blue-600 text-white">1</button>
-        <button className="px-3 py-1 rounded-lg border">2</button>
-        <button className="px-3 py-1 rounded-lg border">...</button>
-        <button className="px-3 py-1 rounded-lg border">25</button>
-        <button className="px-3 py-1 rounded-lg border">{">"}</button>
-      </div>
-
       {/* FOOTER */}
       <footer className="bg-white shadow-inner p-6 mt-auto text-gray-600 text-sm">
         <div className="flex flex-wrap justify-between gap-6">
           <div>
-            <h3 className="font-bold text-blue-600">O!Sansi</h3>
+            <h3 className="font-bold text-blue-600">Oh!Sansi</h3>
             <p>
               Plataforma oficial de las Olimpiadas Académicas para colegios de
               Bolivia, desarrollada por la Universidad Mayor de San Simón.
@@ -174,10 +141,12 @@ export default function VisualizarEstudiantes() {
           <div>
             <h4 className="font-semibold">Enlaces Rápidos</h4>
             <ul className="space-y-1">
-              <li>Registro Estudiantes</li>
-              <li>Registro Docentes</li>
-              <li>Encargados de Área</li>
-              <li>Requisitos</li>
+              <li>Registro Evaluadores</li>
+              <li>Asignar Evaluadores</li>
+              <li>Competencias</li>
+              <li>Informes</li>
+              <li>Resultados</li>
+              <li>Estudiantes</li>
             </ul>
           </div>
           <div>
@@ -192,12 +161,13 @@ export default function VisualizarEstudiantes() {
           <div>
             <h4 className="font-semibold">Contacto</h4>
             <p>info@osansi.umss.edu.bo</p>
-            <p>+591 4 4524563</p>
+            <p>+591 4 4542563</p>
             <p>UMSS, Cochabamba, Bolivia</p>
           </div>
         </div>
         <p className="mt-6 text-center text-gray-400 text-xs">
-          © 2024 O!Sansi – Universidad Mayor de San Simón. Todos los derechos reservados.
+          © 2024 Oh!Sansi – Universidad Mayor de San Simón. Todos los derechos
+          reservados.
         </p>
       </footer>
     </div>
