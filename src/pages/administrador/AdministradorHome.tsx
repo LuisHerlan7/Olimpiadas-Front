@@ -54,6 +54,14 @@ export default function AdministradorHome() {
       color: "bg-red-100 text-red-600 hover:bg-red-200",
       path: "/visualizar-estudiantes",
     },
+    {
+      title: "Solicitudes de Ingreso",
+      description:
+        "Revisar y aprobar las solicitudes de ingreso de nuevos participantes.",
+      button: "Gestionar",
+      color: "bg-green-100 text-green-600 hover:bg-green-200",
+      path: "/solicitudes-ingreso",
+    },
   ];
 
   return (
