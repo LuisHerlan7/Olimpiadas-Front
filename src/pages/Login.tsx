@@ -39,6 +39,7 @@ const Login: React.FC = () => {
             console.log('Redirigiendo a encargado');
             navigate('/encargado');
             break;
+          case 'competidor':
           case 'olimpista':
             console.log('Redirigiendo a olimpista');
             navigate('/olimpista');
