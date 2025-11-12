@@ -45,3 +45,45 @@ export async function commitImportInscritos(
 ): Promise<ImportSummary> {
   return importInscritos(file, noDuplicateKey, false); // Llamamos con simulate=false
 }
+
+// ============================================================
+// Crear inscrito manualmente
+// ============================================================
+
+export type CreateInscritoPayload = {
+  documento: string;
+  nombres: string;
+  apellidos: string;
+  unidad?: string;
+  area: string;
+  nivel: string;
+  area_id?: number | null;
+  nivel_id?: number | null;
+};
+
+export type InscritoResponse = {
+  message: string;
+  data: {
+    id: number;
+    documento: string;
+    nombres: string;
+    apellidos: string;
+    unidad: string;
+    area: string;
+    nivel: string;
+    area_id: number | null;
+    nivel_id: number | null;
+    created_at: string;
+    updated_at: string;
+  };
+};
+
+export async function createInscrito(payload: CreateInscritoPayload): Promise<InscritoResponse> {
+  const { data } = await api.post<InscritoResponse>("/inscritos", payload);
+  return data;
+}
+
+export async function deleteInscrito(id: number): Promise<{ message: string }> {
+  const { data } = await api.delete<{ message: string }>(`/inscritos/${id}`);
+  return data;
+}

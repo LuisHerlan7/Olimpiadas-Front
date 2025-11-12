@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import AdminShell from "../../../components/AdminShell";
 import { api } from "../../../api"; // Instancia Axios con token
+import { createInscrito, deleteInscrito, type CreateInscritoPayload } from "../../../services/inscritos";
+import { fetchAreas, fetchNiveles, type Area, type Nivel } from "../../../services/catalogos";
 
 // 🧩 Tipo de datos de cada inscrito
 interface Inscrito {
@@ -19,6 +21,24 @@ export default function AdminInscritosList() {
   const [inscritos, setInscritos] = useState<Inscrito[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [areas, setAreas] = useState<Area[]>([]);
+  const [niveles, setNiveles] = useState<Nivel[]>([]);
+  
+  // Formulario
+  const [formData, setFormData] = useState<CreateInscritoPayload>({
+    documento: "",
+    nombres: "",
+    apellidos: "",
+    unidad: "",
+    area: "",
+    nivel: "",
+    area_id: null,
+    nivel_id: null,
+  });
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [deleting, setDeleting] = useState<number | null>(null);
 
   // 🔍 Filtrado en frontend
   const filteredInscritos = useMemo(() => {
@@ -32,13 +52,124 @@ export default function AdminInscritosList() {
     );
   }, [inscritos, search]);
 
-  // 📦 Cargar inscritos al montar el componente
+  // 📦 Cargar inscritos y catálogos al montar el componente
   useEffect(() => {
-  const fetchInscritos = async () => {
-    setLoading(true);
-    try {
-      const { data } = await api.get<Inscrito[]>("/inscritos");
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        // Cargar inscritos
+        const { data } = await api.get<Inscrito[]>("/inscritos");
+        const lista = Array.isArray(data)
+          ? data.map((i) => ({
+              id: i.id,
+              documento: i.documento || "-",
+              nombres: i.nombres || "",
+              apellidos: i.apellidos || "",
+              unidad: i.unidad || "",
+              area: i.area || "",
+              nivel: i.nivel || "",
+            }))
+          : [];
+        setInscritos(lista);
 
+        // Cargar catálogos
+        const [areasData, nivelesData] = await Promise.all([
+          fetchAreas(),
+          fetchNiveles(),
+        ]);
+        setAreas(areasData);
+        setNiveles(nivelesData);
+      } catch (error) {
+        if (error instanceof Error) {
+          console.error("Error al cargar los datos:", error.message);
+        } else if (
+          typeof error === "object" &&
+          error !== null &&
+          "response" in error
+        ) {
+          console.error("Error de API:", (error as { response?: unknown }).response);
+        } else {
+          console.error("Error desconocido:", error);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+
+  // 🧹 Limpiar búsqueda
+  const limpiar = () => setSearch("");
+
+  // 📝 Abrir modal de creación
+  const abrirModal = () => {
+    setFormData({
+      documento: "",
+      nombres: "",
+      apellidos: "",
+      unidad: "",
+      area: "",
+      nivel: "",
+      area_id: null,
+      nivel_id: null,
+    });
+    setFormErrors({});
+    setShowModal(true);
+  };
+
+  // 🔒 Cerrar modal
+  const cerrarModal = () => {
+    setShowModal(false);
+    setFormData({
+      documento: "",
+      nombres: "",
+      apellidos: "",
+      unidad: "",
+      area: "",
+      nivel: "",
+      area_id: null,
+      nivel_id: null,
+    });
+    setFormErrors({});
+  };
+
+  // 💾 Guardar inscrito
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormErrors({});
+    setSaving(true);
+
+    try {
+      // Validación básica
+      const errors: Record<string, string> = {};
+      if (!formData.documento.trim() || !/^\d{5,}$/.test(formData.documento)) {
+        errors.documento = "Documento debe tener al menos 5 dígitos";
+      }
+      if (!formData.nombres.trim()) {
+        errors.nombres = "Nombres es requerido";
+      }
+      if (!formData.apellidos.trim()) {
+        errors.apellidos = "Apellidos es requerido";
+      }
+      if (!formData.area.trim()) {
+        errors.area = "Área es requerida";
+      }
+      if (!formData.nivel.trim()) {
+        errors.nivel = "Nivel es requerido";
+      }
+
+      if (Object.keys(errors).length > 0) {
+        setFormErrors(errors);
+        setSaving(false);
+        return;
+      }
+
+      await createInscrito(formData);
+      
+      // Recargar lista
+      const { data } = await api.get<Inscrito[]>("/inscritos");
       const lista = Array.isArray(data)
         ? data.map((i) => ({
             id: i.id,
@@ -50,33 +181,106 @@ export default function AdminInscritosList() {
             nivel: i.nivel || "",
           }))
         : [];
-
       setInscritos(lista);
-    } catch (error) {
-      if (error instanceof Error) {
-        // Error genérico de JS (e.g., red, timeout)
-        console.error("Error al cargar los inscritos:", error.message);
-      } else if (
+
+      cerrarModal();
+      alert("Inscrito creado exitosamente");
+    } catch (error: unknown) {
+      if (
         typeof error === "object" &&
         error !== null &&
         "response" in error
       ) {
-        // Error de Axios tipado parcialmente
-        console.error("Error de API:", (error as { response?: unknown }).response);
+        const axiosError = error as { response?: { data?: { errors?: Record<string, string[]>; message?: string } } };
+        const errorData = axiosError.response?.data;
+        if (errorData?.errors) {
+          const normalizedErrors: Record<string, string> = {};
+          Object.entries(errorData.errors).forEach(([key, messages]) => {
+            normalizedErrors[key] = Array.isArray(messages) ? messages[0] : String(messages);
+          });
+          setFormErrors(normalizedErrors);
+        } else {
+          alert(errorData?.message || "Error al crear el inscrito");
+        }
       } else {
-        console.error("Error desconocido al cargar inscritos:", error);
+        alert("Error al crear el inscrito");
       }
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
-  fetchInscritos();
-}, []);
+  // 🔄 Manejar cambio de área (si selecciona de catálogo)
+  const handleAreaChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
+    const value = e.target.value;
+    if (e.target instanceof HTMLSelectElement && value) {
+      const area = areas.find((a) => a.id === Number(value));
+      setFormData({
+        ...formData,
+        area: area?.nombre || value,
+        area_id: area ? area.id : null,
+      });
+    } else {
+      setFormData({ ...formData, area: value, area_id: null });
+    }
+  };
 
+  // 🔄 Manejar cambio de nivel (si selecciona de catálogo)
+  const handleNivelChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
+    const value = e.target.value;
+    if (e.target instanceof HTMLSelectElement && value) {
+      const nivel = niveles.find((n) => n.id === Number(value));
+      setFormData({
+        ...formData,
+        nivel: nivel?.nombre || value,
+        nivel_id: nivel ? nivel.id : null,
+      });
+    } else {
+      setFormData({ ...formData, nivel: value, nivel_id: null });
+    }
+  };
 
-  // 🧹 Limpiar búsqueda
-  const limpiar = () => setSearch("");
+  // 🗑️ Eliminar inscrito
+  const handleDelete = async (id: number) => {
+    if (!confirm("¿Estás seguro de eliminar este inscrito? Esta acción no se puede deshacer.")) {
+      return;
+    }
+
+    setDeleting(id);
+    try {
+      await deleteInscrito(id);
+      
+      // Recargar lista
+      const { data } = await api.get<Inscrito[]>("/inscritos");
+      const lista = Array.isArray(data)
+        ? data.map((i) => ({
+            id: i.id,
+            documento: i.documento || "-",
+            nombres: i.nombres || "",
+            apellidos: i.apellidos || "",
+            unidad: i.unidad || "",
+            area: i.area || "",
+            nivel: i.nivel || "",
+          }))
+        : [];
+      setInscritos(lista);
+      
+      alert("Inscrito eliminado exitosamente");
+    } catch (error: unknown) {
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "response" in error
+      ) {
+        const axiosError = error as { response?: { data?: { message?: string } } };
+        alert(axiosError.response?.data?.message || "Error al eliminar el inscrito");
+      } else {
+        alert("Error al eliminar el inscrito");
+      }
+    } finally {
+      setDeleting(null);
+    }
+  };
 
   return (
     <AdminShell
@@ -84,12 +288,20 @@ export default function AdminInscritosList() {
       subtitle="Listado general de inscritos registrados en el sistema"
       backTo="/admin"
       actions={
-        <Link
-          to="/admin/importar-inscritos"
-          className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors"
-        >
-          Volver a importar inscritos
-        </Link>
+        <div className="flex gap-2">
+          <button
+            onClick={abrirModal}
+            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors"
+          >
+            + Nuevo Inscrito
+          </button>
+          <Link
+            to="/admin/importar-inscritos"
+            className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors"
+          >
+            Importar CSV
+          </Link>
+        </div>
       }
     >
       <div className="rounded-3xl bg-white p-4 md:p-6 space-y-4 text-slate-900 shadow-sm border border-slate-200">
@@ -124,6 +336,7 @@ export default function AdminInscritosList() {
                   <th className="px-4 py-2 text-left">Unidad</th>
                   <th className="px-4 py-2 text-left">Área</th>
                   <th className="px-4 py-2 text-left">Nivel</th>
+                  <th className="px-4 py-2 text-center">Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -139,12 +352,22 @@ export default function AdminInscritosList() {
                       <td className="px-4 py-2">{inscrito.unidad}</td>
                       <td className="px-4 py-2">{inscrito.area}</td>
                       <td className="px-4 py-2">{inscrito.nivel}</td>
+                      <td className="px-4 py-2 text-center">
+                        <button
+                          onClick={() => handleDelete(inscrito.id)}
+                          disabled={deleting === inscrito.id}
+                          className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                          title="Eliminar inscrito"
+                        >
+                          {deleting === inscrito.id ? "Eliminando..." : "🗑️ Eliminar"}
+                        </button>
+                      </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
                     <td
-                      colSpan={6}
+                      colSpan={7}
                       className="px-4 py-6 text-center text-slate-400 italic"
                     >
                       No hay inscritos con los filtros actuales
@@ -152,10 +375,201 @@ export default function AdminInscritosList() {
                   </tr>
                 )}
               </tbody>
+              
+              <tfoot>
+                <tr>
+                  <td colSpan={7} className="px-4 py-6 text-center text-slate-400 italic">
+                    Total de inscritos: {filteredInscritos.length}
+                  </td>
+                </tr>
+              </tfoot>
             </table>
           </div>
         )}
       </div>
+
+      {/* Modal de creación */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-slate-900">Nuevo Inscrito</h2>
+              <button
+                onClick={cerrarModal}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Documento <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.documento}
+                    onChange={(e) => setFormData({ ...formData, documento: e.target.value })}
+                    className={`w-full px-3 py-2 rounded-lg border ${
+                      formErrors.documento ? "border-red-500" : "border-slate-300"
+                    } focus:ring-2 focus:ring-cyan-400 focus:outline-none`}
+                    placeholder="Ej: 12345678"
+                  />
+                  {formErrors.documento && (
+                    <p className="text-xs text-red-500 mt-1">{formErrors.documento}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Unidad
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.unidad}
+                    onChange={(e) => setFormData({ ...formData, unidad: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-cyan-400 focus:outline-none"
+                    placeholder="Ej: Unidad Educativa X"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Nombres <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.nombres}
+                    onChange={(e) => setFormData({ ...formData, nombres: e.target.value })}
+                    className={`w-full px-3 py-2 rounded-lg border ${
+                      formErrors.nombres ? "border-red-500" : "border-slate-300"
+                    } focus:ring-2 focus:ring-cyan-400 focus:outline-none`}
+                    placeholder="Ej: Juan"
+                  />
+                  {formErrors.nombres && (
+                    <p className="text-xs text-red-500 mt-1">{formErrors.nombres}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Apellidos <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.apellidos}
+                    onChange={(e) => setFormData({ ...formData, apellidos: e.target.value })}
+                    className={`w-full px-3 py-2 rounded-lg border ${
+                      formErrors.apellidos ? "border-red-500" : "border-slate-300"
+                    } focus:ring-2 focus:ring-cyan-400 focus:outline-none`}
+                    placeholder="Ej: Pérez"
+                  />
+                  {formErrors.apellidos && (
+                    <p className="text-xs text-red-500 mt-1">{formErrors.apellidos}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Área <span className="text-red-500">*</span>
+                  </label>
+                  {areas.length > 0 ? (
+                    <select
+                      required
+                      value={formData.area_id || ""}
+                      onChange={handleAreaChange}
+                      className={`w-full px-3 py-2 rounded-lg border ${
+                        formErrors.area ? "border-red-500" : "border-slate-300"
+                      } focus:ring-2 focus:ring-cyan-400 focus:outline-none`}
+                    >
+                      <option value="">Seleccione un área</option>
+                      {areas.map((area) => (
+                        <option key={area.id} value={area.id}>
+                          {area.nombre}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      required
+                      value={formData.area}
+                      onChange={handleAreaChange}
+                      className={`w-full px-3 py-2 rounded-lg border ${
+                        formErrors.area ? "border-red-500" : "border-slate-300"
+                      } focus:ring-2 focus:ring-cyan-400 focus:outline-none`}
+                      placeholder="Ej: Ingeniería de Sistemas"
+                    />
+                  )}
+                  {formErrors.area && (
+                    <p className="text-xs text-red-500 mt-1">{formErrors.area}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Nivel <span className="text-red-500">*</span>
+                  </label>
+                  {niveles.length > 0 ? (
+                    <select
+                      required
+                      value={formData.nivel_id || ""}
+                      onChange={handleNivelChange}
+                      className={`w-full px-3 py-2 rounded-lg border ${
+                        formErrors.nivel ? "border-red-500" : "border-slate-300"
+                      } focus:ring-2 focus:ring-cyan-400 focus:outline-none`}
+                    >
+                      <option value="">Seleccione un nivel</option>
+                      {niveles.map((nivel) => (
+                        <option key={nivel.id} value={nivel.id}>
+                          {nivel.nombre}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      required
+                      value={formData.nivel}
+                      onChange={handleNivelChange}
+                      className={`w-full px-3 py-2 rounded-lg border ${
+                        formErrors.nivel ? "border-red-500" : "border-slate-300"
+                      } focus:ring-2 focus:ring-cyan-400 focus:outline-none`}
+                      placeholder="Ej: Nivel 1"
+                    />
+                  )}
+                  {formErrors.nivel && (
+                    <p className="text-xs text-red-500 mt-1">{formErrors.nivel}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                <button
+                  type="button"
+                  onClick={cerrarModal}
+                  className="px-4 py-2 text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+                  disabled={saving}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors disabled:opacity-50"
+                  disabled={saving}
+                >
+                  {saving ? "Guardando..." : "Guardar"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </AdminShell>
   );
 }
