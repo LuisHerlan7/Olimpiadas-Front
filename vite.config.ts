@@ -58,5 +58,15 @@ export default defineConfig({
     target: "esnext",
     outDir: "dist",
     sourcemap: true,   // quítalo en producción si no lo necesitas
+    chunkSizeWarningLimit: 1000, // Aumentar límite de advertencia a 1MB
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Separar vendor chunks grandes
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'utils-vendor': ['axios'],
+        },
+      },
+    },
   },
 });
