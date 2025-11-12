@@ -80,3 +80,51 @@ export async function listarSnapshots(page = 1): Promise<Page<SnapshotRow>> {
   const { data } = await api.get<Page<SnapshotRow>>("/responsable/fase-final/snapshots", { params: { page } });
   return data;
 }
+
+// ============================================================
+// Funciones para Evaluador (Fase Final)
+// ============================================================
+
+export type AsignadaFinal = {
+  id: number;
+  inscrito: {
+    id: number;
+    apellidos: string;
+    nombres: string;
+    area_id: number | null;
+    nivel_id: number | null;
+  } | null;
+  area_id: number | null;
+  nivel_id: number | null;
+  habilitado_at: string;
+  estado: "EN_EDICION" | "FINALIZADA";
+  nota_final: number | null;
+  notas: Record<string, unknown> | null;
+};
+
+export async function listarFinalAsignadas(page = 1): Promise<Page<AsignadaFinal>> {
+  const { data } = await api.get<Page<AsignadaFinal>>("/evaluador/final/asignadas", { params: { page } });
+  return data;
+}
+
+export async function guardarFinal(
+  finalistaId: number,
+  payload: {
+    nota_final: number;
+    notas: Record<string, unknown>;
+    concepto?: string;
+  }
+): Promise<{ message: string; data: unknown }> {
+  const { data } = await api.post<{ message: string; data: unknown }>(
+    `/evaluador/final/${finalistaId}/guardar`,
+    payload
+  );
+  return data;
+}
+
+export async function finalizarFinal(finalistaId: number): Promise<{ message: string; data: unknown }> {
+  const { data } = await api.post<{ message: string; data: unknown }>(
+    `/evaluador/final/${finalistaId}/finalizar`
+  );
+  return data;
+}
