@@ -291,9 +291,10 @@ export default function IngresarNotas() {
           </div>
         </div>
 
-        {/* Tabla */}
+        {/* Tabla - Responsive */}
         <div className="overflow-hidden rounded-2xl border border-white/10 bg-slate-900/50 shadow-2xl">
-          <div className="overflow-x-auto">
+          {/* Desktop: Tabla normal */}
+          <div className="hidden lg:block overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-slate-950/80">
                 <tr className="text-left">
@@ -301,7 +302,7 @@ export default function IngresarNotas() {
                   <th className="px-4 py-3 font-semibold">Área / Nivel</th>
                   <th className="px-4 py-3 font-semibold">Nota</th>
                   <th className="px-4 py-3 font-semibold">Concepto</th>
-                  <th className="px-4 py-3 font-semibold">Motivo (si desclasif.)</th>
+                  <th className="px-4 py-3 font-semibold">Motivo</th>
                   <th className="px-4 py-3 font-semibold">Estado / Acciones</th>
                 </tr>
               </thead>
@@ -329,7 +330,6 @@ export default function IngresarNotas() {
                       } as RowState);
 
                     const disabled = st.saving || st.estado === "finalizado";
-                    const isAuto = !st.conceptoManual && !st.desclasificar && !!st.concepto;
 
                     return (
                       <tr
@@ -352,13 +352,12 @@ export default function IngresarNotas() {
                           <div className="text-xs text-slate-300">
                             Nivel: <span className="font-medium text-white">{getNivelNombre(i)}</span>
                           </div>
-                          <div className="mt-1 text-[11px] text-slate-400">Aprobado desde {APROBADO_DESDE}.</div>
                         </td>
 
                         {/* Nota */}
                         <td className="px-4 py-3 align-top">
                           <input
-                            className="w-28 rounded-lg border border-white/10 bg-slate-900/60 px-2 py-1 outline-none placeholder:text-slate-500 focus:border-cyan-400/40 disabled:opacity-60"
+                            className="w-24 min-w-[80px] rounded-lg border border-white/10 bg-slate-900/60 px-2 py-1 outline-none placeholder:text-slate-500 focus:border-cyan-400/40 disabled:opacity-60"
                             placeholder="0.00"
                             value={st.nota_final}
                             onChange={(e) => onChangeNota(i.id, e.target.value)}
@@ -367,11 +366,11 @@ export default function IngresarNotas() {
                           />
                         </td>
 
-                        {/* Concepto (select + chip) */}
-                        <td className="px-4 py-3 align-top">
-                          <div className="flex items-center gap-2">
+                        {/* Concepto */}
+                        <td className="px-4 py-3 align-top min-w-[200px]">
+                          <div className="flex flex-col gap-2">
                             <select
-                              className="rounded-lg border border-white/10 bg-slate-900/60 px-2 py-1 outline-none focus:border-cyan-400/40 disabled:opacity-60"
+                              className="w-full rounded-lg border border-white/10 bg-slate-900/60 px-2 py-1 text-xs outline-none focus:border-cyan-400/40 disabled:opacity-60"
                               value={st.desclasificar ? "DESCLASIFICADO" : st.concepto}
                               onChange={(e) => {
                                 const val = e.target.value as "" | Concepto;
@@ -399,47 +398,32 @@ export default function IngresarNotas() {
                               ))}
                             </select>
 
-                            {st.desclasificar ? (
-                              <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/15 px-2 py-0.5 text-xs font-semibold text-rose-200 ring-1 ring-rose-500/30">
-                                ● Desclasificado
-                              </span>
-                            ) : isAuto ? (
-                              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-semibold text-emerald-200 ring-1 ring-emerald-500/30">
-                                ● Aprobado (auto)
-                              </span>
-                            ) : st.concepto ? (
-                              <span className="inline-flex items-center gap-1 rounded-full bg-cyan-500/15 px-2 py-0.5 text-xs font-semibold text-cyan-200 ring-1 ring-cyan-500/30">
-                                ● {st.concepto}
-                              </span>
-                            ) : null}
+                            <label className="inline-flex select-none items-center gap-2 text-xs text-slate-300">
+                              <input
+                                type="checkbox"
+                                className="h-3 w-3 rounded border-white/20 bg-slate-900/60"
+                                checked={st.desclasificar}
+                                onChange={(e) =>
+                                  setField(i.id, {
+                                    desclasificar: e.target.checked,
+                                    concepto: e.target.checked ? "DESCLASIFICADO" : st.concepto,
+                                  })
+                                }
+                                disabled={disabled}
+                              />
+                              Desclasificar
+                            </label>
                           </div>
-
-                          {/* Toggle desclasificar */}
-                          <label className="mt-2 inline-flex select-none items-center gap-2 text-xs text-slate-300">
-                            <input
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-white/20 bg-slate-900/60"
-                              checked={st.desclasificar}
-                              onChange={(e) =>
-                                setField(i.id, {
-                                  desclasificar: e.target.checked,
-                                  concepto: e.target.checked ? "DESCLASIFICADO" : st.concepto,
-                                })
-                              }
-                              disabled={disabled}
-                            />
-                            Marcar como desclasificado
-                          </label>
                         </td>
 
                         {/* Motivo */}
-                        <td className="px-4 py-3 align-top">
+                        <td className="px-4 py-3 align-top min-w-[200px]">
                           <input
                             className={cn(
-                              "w-72 rounded-lg border border-white/10 bg-slate-900/60 px-2 py-1 outline-none focus:border-cyan-400/40 disabled:opacity-60",
+                              "w-full max-w-[250px] rounded-lg border border-white/10 bg-slate-900/60 px-2 py-1 text-xs outline-none focus:border-cyan-400/40 disabled:opacity-60",
                               st.desclasificar && "placeholder:text-rose-300"
                             )}
-                            placeholder={st.desclasificar ? "Obligatorio si desclasifica" : "—"}
+                            placeholder={st.desclasificar ? "Obligatorio" : "—"}
                             value={st.observaciones}
                             onChange={(e) => setField(i.id, { observaciones: e.target.value })}
                             disabled={disabled || !st.desclasificar}
@@ -447,16 +431,16 @@ export default function IngresarNotas() {
                         </td>
 
                         {/* Estado / Acciones */}
-                        <td className="px-4 py-3 align-top">
+                        <td className="px-4 py-3 align-top min-w-[180px]">
                           <div className="mb-2">
                             {st.estado ? (
                               st.estado === "finalizado" ? (
                                 <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-semibold text-emerald-200 ring-1 ring-emerald-500/30">
-                                  ● Finalizado
+                                  Finalizado
                                 </span>
                               ) : (
                                 <span className="inline-flex items-center gap-1 rounded-full bg-yellow-500/15 px-2 py-0.5 text-xs font-semibold text-yellow-200 ring-1 ring-yellow-500/30">
-                                  ● Borrador
+                                  Borrador
                                 </span>
                               )
                             ) : (
@@ -464,16 +448,16 @@ export default function IngresarNotas() {
                             )}
                           </div>
 
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
                             <button
-                              className="rounded-xl border border-white/10 px-3 py-1 text-sm hover:bg-white/10 disabled:opacity-50"
+                              className="flex-1 min-w-[80px] rounded-lg border border-white/10 px-2 py-1 text-xs hover:bg-white/10 disabled:opacity-50 whitespace-nowrap"
                               onClick={() => void handleGuardar(i)}
                               disabled={disabled}
                             >
                               {st.saving ? "Guardando…" : "Guardar"}
                             </button>
                             <button
-                              className="rounded-xl bg-cyan-500 px-3 py-1 text-sm font-semibold text-slate-900 hover:bg-cyan-400 disabled:opacity-50"
+                              className="flex-1 min-w-[80px] rounded-lg bg-cyan-500 px-2 py-1 text-xs font-semibold text-slate-900 hover:bg-cyan-400 disabled:opacity-50 whitespace-nowrap"
                               onClick={() => void handleFinalizar(i)}
                               disabled={disabled}
                             >
@@ -481,7 +465,7 @@ export default function IngresarNotas() {
                             </button>
                           </div>
 
-                          {st.error ? <div className="mt-2 text-xs text-rose-300">{st.error}</div> : null}
+                          {st.error ? <div className="mt-2 text-xs text-rose-300 break-words">{st.error}</div> : null}
                         </td>
                       </tr>
                     );
@@ -495,6 +479,164 @@ export default function IngresarNotas() {
                 )}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile/Tablet: Cards */}
+          <div className="lg:hidden">
+            {loading ? (
+              [...Array(5)].map((_, idx) => (
+                <div key={idx} className="p-4 border-b border-white/5">
+                  <div className="h-20 w-full animate-pulse rounded bg-slate-800/60" />
+                </div>
+              ))
+            ) : rows.length ? (
+              <div className="divide-y divide-white/5">
+                {rows.map((i) => {
+                  const st =
+                    local[i.id] ??
+                    ({
+                      nota_final: "",
+                      concepto: "",
+                      conceptoManual: false,
+                      desclasificar: false,
+                      observaciones: "",
+                      estado: "",
+                      error: null,
+                    } as RowState);
+
+                  const disabled = st.saving || st.estado === "finalizado";
+
+                  return (
+                    <div key={i.id} className="p-4 space-y-4 bg-slate-900/20">
+                      {/* Header: Competidor y Estado */}
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1">
+                          <div className="font-semibold text-white">{nombreCompleto(i)}</div>
+                          <div className="text-xs text-slate-400">
+                            Doc: <span className="font-medium text-slate-300">{i.documento ?? "—"}</span>
+                          </div>
+                          <div className="mt-1 text-xs text-slate-300">
+                            <span className="font-medium">{getAreaNombre(i)}</span> / <span className="font-medium">{getNivelNombre(i)}</span>
+                          </div>
+                        </div>
+                        {st.estado && (
+                          <span
+                            className={cn(
+                              "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ring-1 whitespace-nowrap",
+                              st.estado === "finalizado"
+                                ? "bg-emerald-500/15 text-emerald-200 ring-emerald-500/30"
+                                : "bg-yellow-500/15 text-yellow-200 ring-yellow-500/30"
+                            )}
+                          >
+                            {st.estado === "finalizado" ? "Finalizado" : "Borrador"}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Nota y Concepto */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs text-slate-400 mb-1">Nota</label>
+                          <input
+                            className="w-full rounded-lg border border-white/10 bg-slate-900/60 px-2 py-1.5 text-sm outline-none placeholder:text-slate-500 focus:border-cyan-400/40 disabled:opacity-60"
+                            placeholder="0.00"
+                            value={st.nota_final}
+                            onChange={(e) => onChangeNota(i.id, e.target.value)}
+                            disabled={disabled || st.desclasificar}
+                            inputMode="decimal"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-slate-400 mb-1">Concepto</label>
+                          <select
+                            className="w-full rounded-lg border border-white/10 bg-slate-900/60 px-2 py-1.5 text-sm outline-none focus:border-cyan-400/40 disabled:opacity-60"
+                            value={st.desclasificar ? "DESCLASIFICADO" : st.concepto}
+                            onChange={(e) => {
+                              const val = e.target.value as "" | Concepto;
+                              if (val === "DESCLASIFICADO") {
+                                setField(i.id, {
+                                  desclasificar: true,
+                                  concepto: "DESCLASIFICADO",
+                                  conceptoManual: true,
+                                });
+                              } else {
+                                setField(i.id, {
+                                  desclasificar: false,
+                                  concepto: val,
+                                  conceptoManual: true,
+                                });
+                              }
+                            }}
+                            disabled={disabled}
+                          >
+                            <option value="">Seleccione…</option>
+                            {CONCEPTOS.map((c) => (
+                              <option key={c} value={c}>
+                                {c}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Desclasificar */}
+                      <label className="flex items-center gap-2 text-xs text-slate-300">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 rounded border-white/20 bg-slate-900/60"
+                          checked={st.desclasificar}
+                          onChange={(e) =>
+                            setField(i.id, {
+                              desclasificar: e.target.checked,
+                              concepto: e.target.checked ? "DESCLASIFICADO" : st.concepto,
+                            })
+                          }
+                          disabled={disabled}
+                        />
+                        Marcar como desclasificado
+                      </label>
+
+                      {/* Motivo */}
+                      {st.desclasificar && (
+                        <div>
+                          <label className="block text-xs text-slate-400 mb-1">Motivo (obligatorio)</label>
+                          <input
+                            className="w-full rounded-lg border border-white/10 bg-slate-900/60 px-2 py-1.5 text-sm outline-none focus:border-cyan-400/40 disabled:opacity-60 placeholder:text-rose-300"
+                            placeholder="Ingrese el motivo"
+                            value={st.observaciones}
+                            onChange={(e) => setField(i.id, { observaciones: e.target.value })}
+                            disabled={disabled}
+                          />
+                        </div>
+                      )}
+
+                      {/* Error */}
+                      {st.error && <div className="text-xs text-rose-300">{st.error}</div>}
+
+                      {/* Acciones */}
+                      <div className="flex gap-2 pt-2">
+                        <button
+                          className="flex-1 rounded-lg border border-white/10 px-3 py-2 text-sm hover:bg-white/10 disabled:opacity-50"
+                          onClick={() => void handleGuardar(i)}
+                          disabled={disabled}
+                        >
+                          {st.saving ? "Guardando…" : "Guardar"}
+                        </button>
+                        <button
+                          className="flex-1 rounded-lg bg-cyan-500 px-3 py-2 text-sm font-semibold text-slate-900 hover:bg-cyan-400 disabled:opacity-50"
+                          onClick={() => void handleFinalizar(i)}
+                          disabled={disabled}
+                        >
+                          {st.saving ? "…" : "Finalizar"}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="p-6 text-center text-slate-300">Sin asignaciones</div>
+            )}
           </div>
 
           {/* Paginación */}
