@@ -7,6 +7,8 @@ import AdminResponsableForm from "./pages/admin/responsables/Form";
 
 import AdminEvaluadoresList from "./pages/admin/evaluadores/List";
 import AdminEvaluadorForm from "./pages/admin/evaluadores/Form";
+import AdminAreasPage from "./pages/admin/AreasPage";
+import AdminAreaForm from "./pages/admin/areas/Form";
 
 import AdminImportarInscritos from "./pages/admin/import/ImportInscritos";
 import AdminInscritosList from "./pages/admin/inscritos/List";
@@ -58,6 +60,10 @@ export default function App() {
               <Route path="/admin/evaluadores" element={<AdminEvaluadoresList />} />
               <Route path="/admin/evaluadores/nuevo" element={<AdminEvaluadorForm />} />
               <Route path="/admin/evaluadores/:id" element={<AdminEvaluadorForm />} />
+
+              <Route path="/admin/areas" element={<AdminAreasPage />} />
+              <Route path="/admin/areas/nuevo" element={<AdminAreaForm />} />
+              <Route path="/admin/areas/:id" element={<AdminAreaForm />} />
 
               <Route path="/admin/importar-inscritos" element={<AdminImportarInscritos />} />
               <Route path="/admin/inscritos" element={<AdminInscritosList />} />
