@@ -140,12 +140,15 @@ api.interceptors.response.use(
         data.toLowerCase().includes("<html") ||
         data.includes("Unauthorized."));
 
-    if ((status === 401 || status === 403 || status === 419 || isHtml) && !isHandshake && !isSafeNoLogout) {
+    // 401/419 → cerrar sesión (token inválido/expirado)
+    // 403 → NO cerrar sesión (solo rol insuficiente, mostrar error)
+    if ((status === 401 || status === 419 || isHtml) && !isHandshake && !isSafeNoLogout) {
       hardClearSession();
       if (window.location.pathname !== "/login") {
         window.location.href = "/login";
       }
     }
+    // 403 se maneja en el componente, no cerramos sesión
 
     // 🎯 Si es 422, devolvemos un objeto tipado
     if (status === 422) {
