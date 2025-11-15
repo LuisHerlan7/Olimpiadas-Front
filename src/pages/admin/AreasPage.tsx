@@ -100,17 +100,7 @@ export default function AdminAreasPage() {
               </table>
             </div>
           </div>
-        </section>
-
-        <section className="rounded-3xl border border-white/10 bg-slate-900/60 p-6 text-sm text-slate-300 shadow-lg backdrop-blur-xl">
-          <h3 className="mb-3 text-white/90 font-semibold text-base">Criterios de aceptación</h3>
-          <ol className="list-decimal space-y-1 pl-6 leading-relaxed">
-            <li>Registrar áreas con nombre y código único.</li>
-            <li>Estado: activo/inactivo.</li>
-            <li>Editar y desactivar áreas sin perder trazabilidad.</li>
-            <li>Control de permisos: solo Administrador puede crear/editar.</li>
-          </ol>
-        </section>
+        </section>      
       </main>
     </div>
   );
