@@ -9,6 +9,7 @@ import {
   type InscritoAsignado,
   toDecimal2,
 } from "../../services/evaluaciones";
+import { getFaseAsignacion, type FaseInscripcion } from "../../services/fases";
 
 // ====== Configurables ======
 const APROBADO_DESDE = 70; // Nota mínima para "APROBADO"
@@ -58,6 +59,8 @@ export default function IngresarNotas() {
   });
   const [local, setLocal] = useState<Record<number, RowState>>({});
   const [loading, setLoading] = useState(true);
+  const [faseAsignacion, setFaseAsignacion] = useState<FaseInscripcion | null>(null);
+  const [loadingFase, setLoadingFase] = useState(true);
 
   // Debounce búsqueda
   const debounceRef = useRef<number | null>(null);
@@ -69,18 +72,53 @@ export default function IngresarNotas() {
     }, 300);
   };
 
+  // Cargar fase de asignación
+  useEffect(() => {
+    const fetchFase = async () => {
+      setLoadingFase(true);
+      try {
+        const data = await getFaseAsignacion();
+        setFaseAsignacion(data);
+      } catch (error) {
+        console.error("Error al cargar fase de asignación:", error);
+      } finally {
+        setLoadingFase(false);
+      }
+    };
+    fetchFase();
+  }, []);
+
+  const verificarSiEstaEnFecha = (): boolean => {
+    if (!faseAsignacion?.fecha_inicio || !faseAsignacion?.fecha_fin || faseAsignacion?.cancelada) {
+      return false;
+    }
+    const ahora = new Date();
+    const inicio = new Date(faseAsignacion.fecha_inicio);
+    const fin = new Date(faseAsignacion.fecha_fin);
+    return ahora >= inicio && ahora <= fin;
+  };
+
   async function load() {
     setLoading(true);
     try {
       const res = await getAsignadas({ page, per_page: perPage, search: search || undefined });
 
-      setRows(res.data);
+      // Ordenar: finalizados al final, borradores primero
+      const sorted = [...res.data].sort((a, b) => {
+        const estadoA = a.evaluacion?.estado || "";
+        const estadoB = b.evaluacion?.estado || "";
+        if (estadoA === "finalizado" && estadoB !== "finalizado") return 1;
+        if (estadoA !== "finalizado" && estadoB === "finalizado") return -1;
+        return 0;
+      });
+
+      setRows(sorted);
       setMeta({ current: res.current_page, last: res.last_page, total: res.total });
 
       // Hidratar/sincronizar estado local
       setLocal((prev) => {
         const next: Record<number, RowState> = { ...prev };
-        for (const i of res.data) {
+        for (const i of sorted) {
           const srvEstado = (i.evaluacion?.estado as "borrador" | "finalizado" | null) ?? "";
           const srvNotaStr = i.evaluacion?.nota_final != null ? String(i.evaluacion.nota_final) : "";
           const srvConcepto = (i.evaluacion?.concepto as Concepto | null) ?? "";
@@ -158,73 +196,109 @@ export default function IngresarNotas() {
 
   // ====== Guardar (borrador) ======
   async function handleGuardar(i: InscritoAsignado) {
-  const st = local[i.id];
-  const err = validarFila(st, false);
-  if (err) return setField(i.id, { error: err });
+    // Verificar si la fase está activa
+    if (!verificarSiEstaEnFecha()) {
+      setField(i.id, { error: faseAsignacion?.mensaje || "La fase de subida de notas no está activa en este momento." });
+      return;
+    }
 
-  const conceptoToSend: Concepto | null = st.desclasificar ? "DESCLASIFICADO" : (st.concepto || null);
+    const st = local[i.id];
+    const err = validarFila(st, false);
+    if (err) return setField(i.id, { error: err });
 
-  setField(i.id, { saving: true, error: null });
-  try {
-    await guardarEvaluacion(i.id, {
-      nota_final: st.desclasificar ? null : st.nota_final === "" ? null : st.nota_final,
-      concepto: conceptoToSend,
-      observaciones: st.desclasificar ? st.observaciones : st.observaciones || null,
-    });
-    await load();
-  } catch {
-    setField(i.id, { error: "No se pudo guardar. Intenta nuevamente." });
-  } finally {
-    setField(i.id, { saving: false });
+    const conceptoToSend: Concepto | null = st.desclasificar ? "DESCLASIFICADO" : (st.concepto || null);
+
+    setField(i.id, { saving: true, error: null });
+    try {
+      await guardarEvaluacion(i.id, {
+        nota_final: st.desclasificar ? null : st.nota_final === "" ? null : st.nota_final,
+        concepto: conceptoToSend,
+        observaciones: st.desclasificar ? st.observaciones : st.observaciones || null,
+      });
+      
+      // Mover al final de la lista
+      setRows((prev) => {
+        const updated = [...prev];
+        const index = updated.findIndex(r => r.id === i.id);
+        if (index !== -1) {
+          const [item] = updated.splice(index, 1);
+          updated.push(item);
+        }
+        return updated;
+      });
+      
+      // Actualizar estado local
+      setField(i.id, { estado: "borrador" });
+    } catch {
+      setField(i.id, { error: "No se pudo guardar. Intenta nuevamente." });
+    } finally {
+      setField(i.id, { saving: false });
+    }
   }
-}
 
 
   // ====== Finalizar ======
   async function handleFinalizar(i: InscritoAsignado) {
-  const st = local[i.id];
-  const err = validarFila(st, true);
-  if (err) return setField(i.id, { error: err });
-
-  if (!window.confirm("¿Finalizar evaluación? Ya no podrás editar hasta que el responsable la reabra.")) {
-    return;
-  }
-
-  const conceptoToSend: Concepto = st.desclasificar
-    ? "DESCLASIFICADO"
-    : (st.concepto || (toDecimal2(st.nota_final) ?? 0) >= APROBADO_DESDE
-        ? "APROBADO"
-        : "DESAPROBADO");
-
-  // Para cumplir 'required|numeric' cuando desclasifica:
-  const notaParaEnviar = st.desclasificar
-    ? (st.nota_final === "" ? 0 : st.nota_final)
-    : st.nota_final;
-
-  setField(i.id, { saving: true, error: null });
-
-  try {
-    await finalizarEvaluacion(i.id, {
-      nota_final: notaParaEnviar,
-      concepto: conceptoToSend,
-      observaciones: st.desclasificar ? st.observaciones : st.observaciones || null,
-      notas: [], //  ← **ARRAY vacío**, no {}
-    });
-    await load();
-  } catch (err) {
-    // si ya pusiste el api.ts mejorado, aquí podrás ver el campo exacto
-    const v = err as { status?: number; errors?: Record<string, string[]>; message?: string };
-    let msg = "No se pudo finalizar. Revisa los campos obligatorios.";
-    if (v?.status === 422 && v.errors) {
-      const k = Object.keys(v.errors)[0];
-      if (k) msg = v.errors[k][0] ?? msg;
+    // Verificar si la fase está activa
+    if (!verificarSiEstaEnFecha()) {
+      setField(i.id, { error: faseAsignacion?.mensaje || "La fase de subida de notas no está activa en este momento." });
+      return;
     }
-    setField(i.id, { error: msg });
-  } finally {
-    // si load() lanzó error, no te quedas “Guardando…”
-    setField(i.id, { saving: false });
+
+    const st = local[i.id];
+    const err = validarFila(st, true);
+    if (err) return setField(i.id, { error: err });
+
+    if (!window.confirm("¿Finalizar evaluación? Ya no podrás editar hasta que el responsable la reabra.")) {
+      return;
+    }
+
+    const conceptoToSend: Concepto = st.desclasificar
+      ? "DESCLASIFICADO"
+      : (st.concepto || (toDecimal2(st.nota_final) ?? 0) >= APROBADO_DESDE
+          ? "APROBADO"
+          : "DESAPROBADO");
+
+    // Para cumplir 'required|numeric' cuando desclasifica:
+    const notaParaEnviar = st.desclasificar
+      ? (st.nota_final === "" ? 0 : st.nota_final)
+      : st.nota_final;
+
+    setField(i.id, { saving: true, error: null });
+
+    try {
+      await finalizarEvaluacion(i.id, {
+        nota_final: notaParaEnviar,
+        concepto: conceptoToSend,
+        observaciones: st.desclasificar ? st.observaciones : st.observaciones || null,
+        notas: [], //  ← **ARRAY vacío**, no {}
+      });
+      
+      // Mover al final de la lista
+      setRows((prev) => {
+        const updated = [...prev];
+        const index = updated.findIndex(r => r.id === i.id);
+        if (index !== -1) {
+          const [item] = updated.splice(index, 1);
+          updated.push(item);
+        }
+        return updated;
+      });
+      
+      // Actualizar estado local
+      setField(i.id, { estado: "finalizado" });
+    } catch (err) {
+      const v = err as { status?: number; errors?: Record<string, string[]>; message?: string };
+      let msg = "No se pudo finalizar. Revisa los campos obligatorios.";
+      if (v?.status === 422 && v.errors) {
+        const k = Object.keys(v.errors)[0];
+        if (k) msg = v.errors[k][0] ?? msg;
+      }
+      setField(i.id, { error: msg });
+    } finally {
+      setField(i.id, { saving: false });
+    }
   }
-}
 
 
   return (
@@ -252,6 +326,26 @@ export default function IngresarNotas() {
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-6 md:px-6">
+        {/* Alerta si la fase no está activa */}
+        {!loadingFase && !verificarSiEstaEnFecha() && (
+          <div className="mb-4 rounded-xl border border-amber-500/50 bg-amber-500/10 p-4 text-amber-200">
+            <div className="flex items-center gap-2">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 9v4m0 4h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
+              </svg>
+              <p className="font-semibold">Fase de subida de notas cerrada</p>
+            </div>
+            <p className="mt-2 text-sm text-amber-300/80">
+              {faseAsignacion?.mensaje || "La funcionalidad de subir notas está bloqueada porque no estamos en el período de subida de notas."}
+            </p>
+            {faseAsignacion?.fecha_inicio && faseAsignacion?.fecha_fin && (
+              <p className="mt-1 text-xs text-amber-300/60">
+                Período: {new Date(faseAsignacion.fecha_inicio).toLocaleDateString()} - {new Date(faseAsignacion.fecha_fin).toLocaleDateString()}
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Toolbar */}
         <div className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-3">
           <div className="col-span-2">
@@ -329,7 +423,7 @@ export default function IngresarNotas() {
                         error: null,
                       } as RowState);
 
-                    const disabled = st.saving || st.estado === "finalizado";
+                    const disabled = st.saving || st.estado === "finalizado" || !verificarSiEstaEnFecha();
 
                     return (
                       <tr
@@ -504,7 +598,7 @@ export default function IngresarNotas() {
                       error: null,
                     } as RowState);
 
-                  const disabled = st.saving || st.estado === "finalizado";
+                  const disabled = st.saving || st.estado === "finalizado" || !verificarSiEstaEnFecha();
 
                   return (
                     <div key={i.id} className="p-4 space-y-4 bg-slate-900/20">
