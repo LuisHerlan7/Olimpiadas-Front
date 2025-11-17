@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { simulateImportInscritos, commitImportInscritos } from "../../../services/inscritos"; // Importa las funciones reales
+import { getFaseInscripcion, type FaseInscripcion } from "../../../services/fases";
 
 export type ImportError = { row: number; cause: string };
 export type ImportSummary = { total: number; inserted: number; rejected: number; errors: ImportError[]; log?: string };
@@ -24,8 +25,26 @@ export default function ImportInscritos() {
   const [loading, setLoading] = useState<"simulate" | "commit" | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [csvData, setCsvData] = useState<{ headers: string[]; rows: string[][] } | null>(null);  // Estado para almacenar los datos del CSV
+  const [faseInscripcion, setFaseInscripcion] = useState<FaseInscripcion | null>(null);
+  const [loadingFase, setLoadingFase] = useState(true);
 
-  const canSimulate = useMemo(() => !!file, [file]);
+  const canSimulate = useMemo(() => !!file && faseInscripcion?.activa, [file, faseInscripcion]);
+
+  // Cargar estado de fase de inscripción
+  useEffect(() => {
+    const fetchFase = async () => {
+      setLoadingFase(true);
+      try {
+        const faseData = await getFaseInscripcion();
+        setFaseInscripcion(faseData);
+      } catch (error) {
+        console.error("Error al cargar fase de inscripción:", error);
+      } finally {
+        setLoadingFase(false);
+      }
+    };
+    fetchFase();
+  }, []);
 
   async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -43,6 +62,11 @@ export default function ImportInscritos() {
 
   async function handleSimulate() {
     if (!file) return;
+    
+    if (!faseInscripcion?.activa) {
+      setMessage(faseInscripcion?.mensaje || "La fase de inscripción no está activa en este momento.");
+      return;
+    }
 
     setMessage(null);
     setLoading("simulate");
@@ -60,6 +84,11 @@ export default function ImportInscritos() {
 
   async function handleCommit() {
     if (!file) return;
+    
+    if (!faseInscripcion?.activa) {
+      setMessage(faseInscripcion?.mensaje || "La fase de inscripción no está activa en este momento.");
+      return;
+    }
 
     setMessage(null);
     setLoading("commit");
@@ -93,6 +122,26 @@ export default function ImportInscritos() {
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-8 md:px-6 md:py-10">
+        {/* Alerta si la fase no está activa */}
+        {!loadingFase && !faseInscripcion?.activa && (
+          <div className="mb-6 rounded-xl border border-amber-500/50 bg-amber-500/10 p-4 text-amber-200">
+            <div className="flex items-center gap-2">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 9v4m0 4h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
+              </svg>
+              <p className="font-semibold">Fase de inscripción cerrada</p>
+            </div>
+            <p className="mt-2 text-sm text-amber-300/80">
+              {faseInscripcion?.mensaje || "La funcionalidad de importar inscritos está bloqueada porque no estamos en el período de inscripción."}
+            </p>
+            {faseInscripcion?.fecha_inicio && faseInscripcion?.fecha_fin && (
+              <p className="mt-1 text-xs text-amber-300/60">
+                Período: {new Date(faseInscripcion.fecha_inicio).toLocaleDateString()} - {new Date(faseInscripcion.fecha_fin).toLocaleDateString()}
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Carga */}
         <section className="mb-8 rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-xl">
           <h2 className="mb-3 text-xl font-bold text-white">Archivo CSV</h2>
@@ -103,13 +152,14 @@ export default function ImportInscritos() {
                 type="file"
                 accept=".csv,text/csv"
                 onChange={handleFileChange}  // Manejador de cambio de archivo
-                className="block w-full cursor-pointer rounded-xl border border-white/10 bg-slate-800/70 p-2 text-slate-200 file:mr-4 file:rounded-lg file:border-0 file:bg-cyan-600/90 file:px-4 file:py-2 file:text-white hover:file:bg-cyan-500"
+                disabled={!faseInscripcion?.activa || loadingFase}
+                className="block w-full cursor-pointer rounded-xl border border-white/10 bg-slate-800/70 p-2 text-slate-200 file:mr-4 file:rounded-lg file:border-0 file:bg-cyan-600/90 file:px-4 file:py-2 file:text-white hover:file:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-50"
               />
             </label>
 
             <button
               onClick={handleSimulate}
-              disabled={!canSimulate || loading !== null}
+              disabled={!canSimulate || loading !== null || !faseInscripcion?.activa || loadingFase}
               className="rounded-xl bg-cyan-600/90 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading === "simulate" ? "Simulando..." : "Subir (simulado)"}
@@ -187,7 +237,7 @@ export default function ImportInscritos() {
             <div className="mt-6 flex items-center gap-3">
               <button
                 onClick={handleCommit}
-                disabled={!file || loading === "commit"}
+                disabled={!file || loading === "commit" || !faseInscripcion?.activa || loadingFase}
                 className="rounded-xl bg-emerald-600/90 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {loading === "commit" ? "Confirmando..." : `Confirmar importación (${summary.inserted} registros)`}

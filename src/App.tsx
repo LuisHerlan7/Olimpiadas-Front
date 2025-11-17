@@ -10,6 +10,7 @@ import AdminEvaluadorForm from "./pages/admin/evaluadores/Form";
 
 import AdminImportarInscritos from "./pages/admin/import/ImportInscritos";
 import AdminInscritosList from "./pages/admin/inscritos/List";
+import FasesPage from "./pages/admin/fases/FasesPage";
 
 import { RequireAuth, RequireRole, RequireAnyRole, RedirectIfAuth } from "./routes/guards";
 import LoginPage from "./views/LoginPage";
@@ -61,6 +62,7 @@ export default function App() {
 
               <Route path="/admin/importar-inscritos" element={<AdminImportarInscritos />} />
               <Route path="/admin/inscritos" element={<AdminInscritosList />} />
+              <Route path="/admin/fases" element={<FasesPage />} />
             </Route>
 
             {/* RESPONSABLE */}

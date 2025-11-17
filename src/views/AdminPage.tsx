@@ -114,6 +114,27 @@ export default function AdminPage() {
               </svg>
             </span>
           </Link>
+
+          {/* Fases */}
+          <Link
+            to="/admin/fases"
+            className="group relative overflow-hidden rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-xl transition hover:border-cyan-400/40 hover:bg-slate-900/80"
+          >
+            <div className="pointer-events-none absolute -inset-1 -z-10 rounded-3xl bg-gradient-to-tr from-cyan-400/20 to-indigo-500/20 opacity-50 blur-2xl group-hover:opacity-80" />
+            <div className="mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-cyan-500/20">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M3 6h18M3 12h18M3 18h18" stroke="#22d3ee" strokeWidth="1.6" strokeLinecap="round"/>
+              </svg>
+            </div>
+            <h3 className="text-lg font-bold text-white">Fases</h3>
+            <p className="mt-1 text-sm text-slate-300">Gestiona las fases del proceso: Inscripción, Asignación y Clasificados.</p>
+            <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-cyan-300">
+              Entrar
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+              </svg>
+            </span>
+          </Link>
         </section>
       </main>
     </div>

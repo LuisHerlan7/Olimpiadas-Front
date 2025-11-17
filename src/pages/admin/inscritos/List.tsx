@@ -5,6 +5,7 @@ import AdminShell from "../../../components/AdminShell";
 import { api } from "../../../api"; // Instancia Axios con token
 import { createInscrito, deleteInscrito, type CreateInscritoPayload } from "../../../services/inscritos";
 import { fetchAreas, fetchNiveles, type Area, type Nivel } from "../../../services/catalogos";
+import { getFaseInscripcion, type FaseInscripcion } from "../../../services/fases";
 
 // 🧩 Tipo de datos de cada inscrito
 interface Inscrito {
@@ -25,6 +26,8 @@ export default function AdminInscritosList() {
   const [saving, setSaving] = useState(false);
   const [areas, setAreas] = useState<Area[]>([]);
   const [niveles, setNiveles] = useState<Nivel[]>([]);
+  const [faseInscripcion, setFaseInscripcion] = useState<FaseInscripcion | null>(null);
+  const [loadingFase, setLoadingFase] = useState(true);
   
   // Formulario
   const [formData, setFormData] = useState<CreateInscritoPayload>({
@@ -56,7 +59,12 @@ export default function AdminInscritosList() {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+      setLoadingFase(true);
       try {
+        // Cargar estado de fase de inscripción
+        const faseData = await getFaseInscripcion();
+        setFaseInscripcion(faseData);
+
         // Cargar inscritos
         const { data } = await api.get<Inscrito[]>("/inscritos");
         const lista = Array.isArray(data)
@@ -93,6 +101,7 @@ export default function AdminInscritosList() {
         }
       } finally {
         setLoading(false);
+        setLoadingFase(false);
       }
     };
 
@@ -105,6 +114,11 @@ export default function AdminInscritosList() {
 
   // 📝 Abrir modal de creación
   const abrirModal = () => {
+    // Verificar si la fase está activa
+    if (!faseInscripcion?.activa) {
+      alert(faseInscripcion?.mensaje || "La fase de inscripción no está activa en este momento.");
+      return;
+    }
     setFormData({
       documento: "",
       nombres: "",
@@ -138,6 +152,13 @@ export default function AdminInscritosList() {
   // 💾 Guardar inscrito
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Verificar si la fase está activa antes de guardar
+    if (!faseInscripcion?.activa) {
+      alert(faseInscripcion?.mensaje || "La fase de inscripción no está activa en este momento.");
+      return;
+    }
+
     setFormErrors({});
     setSaving(true);
 
@@ -291,19 +312,46 @@ export default function AdminInscritosList() {
         <div className="flex gap-2">
           <button
             onClick={abrirModal}
-            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors"
+            disabled={!faseInscripcion?.activa || loadingFase}
+            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title={!faseInscripcion?.activa ? (faseInscripcion?.mensaje || "La fase de inscripción no está activa") : ""}
           >
             + Nuevo Inscrito
           </button>
           <Link
             to="/admin/importar-inscritos"
-            className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors"
+            className={`px-4 py-2 rounded-lg transition-colors ${
+              !faseInscripcion?.activa || loadingFase
+                ? "bg-slate-400 cursor-not-allowed opacity-50 pointer-events-none"
+                : "bg-cyan-600 hover:bg-cyan-700 text-white"
+            }`}
+            title={!faseInscripcion?.activa ? (faseInscripcion?.mensaje || "La fase de inscripción no está activa") : ""}
           >
             Importar CSV
           </Link>
         </div>
       }
     >
+      {/* Alerta si la fase no está activa */}
+      {!loadingFase && !faseInscripcion?.activa && (
+        <div className="mb-4 rounded-xl border border-amber-500/50 bg-amber-500/10 p-4 text-amber-200">
+          <div className="flex items-center gap-2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 9v4m0 4h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
+            </svg>
+            <p className="font-semibold">Fase de inscripción cerrada</p>
+          </div>
+          <p className="mt-2 text-sm text-amber-300/80">
+            {faseInscripcion?.mensaje || "La funcionalidad de subir inscritos está bloqueada porque no estamos en el período de inscripción."}
+          </p>
+          {faseInscripcion?.fecha_inicio && faseInscripcion?.fecha_fin && (
+            <p className="mt-1 text-xs text-amber-300/60">
+              Período: {new Date(faseInscripcion.fecha_inicio).toLocaleDateString()} - {new Date(faseInscripcion.fecha_fin).toLocaleDateString()}
+            </p>
+          )}
+        </div>
+      )}
+
       <div className="rounded-3xl bg-white p-4 md:p-6 space-y-4 text-slate-900 shadow-sm border border-slate-200">
         {/* 🔎 Filtros */}
         <div className="flex flex-col md:flex-row gap-3 mb-4">
