@@ -1,6 +1,5 @@
 // src/services/catalogos.ts
 import { api } from "../api";
-import { listAreas } from "./areas";
 
 export type Area = { id: number; nombre: string; activo?: boolean };
 export type Nivel = { id: number; nombre: string };
@@ -13,10 +12,12 @@ const NIVEL_FALLBACK: Nivel[] = [
 
 export async function fetchAreas(): Promise<Area[]> {
   try {
-    // Reutilizamos el servicio de areas (devuelve [] si falla)
-    const arr = await listAreas({ per_page: 1000 });
+    // Si tu backend devuelve { data: [...] } o [...], manejamos ambos casos
+    const { data } = await api.get("/areas", { params: { per_page: 1000 } });
+    const arr = Array.isArray(data) ? data : (data?.data ?? []);
     return (arr as Area[]).filter(Boolean);
   } catch {
+    // Si aún no existe el endpoint, devolvemos lista vacía
     return [];
   }
 }

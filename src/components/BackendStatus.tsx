@@ -36,7 +36,7 @@ export default function BackendStatus() {
     let mounted = true;
     const check = async () => {
       try {
-        const res = await api.get("/ping");
+        const res = await api.get("/api/ping");
         if (!mounted) return;
         setStatus(res.status === 200 ? "ok" : "error");
       } catch {

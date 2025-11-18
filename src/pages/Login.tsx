@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { api, setToken, getCsrf } from "../api";
+import { api, setToken } from "../api";
 import { isAxiosError } from "axios";
 
 // ==== Tipos de dominio ====
@@ -43,7 +43,7 @@ export default function Login() {
     let mounted = true;
     const check = async () => {
       try {
-        const res = await api.get("/ping");
+        const res = await api.get("/api/ping");
         if (!mounted) return;
         setConn(res.status === 200 ? "ok" : "error");
       } catch {
@@ -82,16 +82,8 @@ export default function Login() {
 
     setCargando(true);
     try {
-      // Flujo Sanctum: pedir CSRF cookie antes de login (si el backend la requiere)
-      try {
-        await getCsrf();
-      } catch (err) {
-        // no fatal — si no responde, el backend podría no necesitar CSRF
-        console.warn("getCsrf() falló, continuando con login: ", err);
-      }
-
-      // ⚠️ IMPORTANTE: la instancia `api` ya usa `baseURL='/api'`, enviar ruta relativa
-      const { data } = await api.post<LoginResponse>("/auth/login", { correo: correo.trim(), password });
+      // ⚠️ IMPORTANTE: prefijo /api
+      const { data } = await api.post<LoginResponse>("/api/auth/login", { correo: correo.trim(), password });
       setToken(data.token);
       localStorage.setItem("token", data.token);
       localStorage.setItem("usuario", JSON.stringify(data.usuario));
