@@ -10,15 +10,29 @@ import axios, { AxiosError, AxiosHeaders } from "axios";
  * - Patch: NO patear al login por errores de /responsable/fase-final/*
  */
 
-export const baseURL = import.meta.env.VITE_API_URL || "/api";
+// Prefer explicit VITE_API_URL during development. If provided, we
+// normalize it (remove trailing slash) and append `/api` so callers
+// can keep using relative API paths like `/auth/login`.
+const envApi = import.meta.env.VITE_API_URL as string | undefined;
+export const baseURL = envApi ? `${envApi.replace(/\/$/, "")}/api` : "/api";
 
 export const api = axios.create({
   baseURL,
-  withCredentials: false,
+  // Para autenticación SPA con Sanctum (cookies) habilitar en desarrollo
+  withCredentials: true,
   headers: {
     Accept: "application/json",
   },
 });
+
+/**
+ * Solicitar el csrf cookie de Sanctum (llamar antes de endpoints que usan cookies)
+ */
+export async function getCsrf(): Promise<void> {
+  const csrfBase = envApi ? envApi.replace(/\/$/, "") : "";
+  const url = csrfBase ? `${csrfBase}/sanctum/csrf-cookie` : `/sanctum/csrf-cookie`;
+  await axios.get(url, { withCredentials: true });
+}
 
 // ====== Claves de storage ======
 const TOKEN_KEY = "ohsansi_token";
