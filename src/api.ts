@@ -11,12 +11,29 @@ import axios, { AxiosError, AxiosHeaders } from "axios";
  */
 
 // Detectar si estamos en producción (Vercel)
-const isProduction = import.meta.env.PROD || (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app'));
-// URL del backend en Railway (sin /api porque las rutas ya lo incluyen)
+const isProduction = 
+  import.meta.env.PROD || 
+  (typeof window !== 'undefined' && (
+    window.location.hostname.includes('vercel.app') ||
+    window.location.hostname.includes('ohsansi')
+  ));
+
+// URL del backend en Railway (con /api porque las rutas del frontend incluyen /api)
 const RAILWAY_BACKEND_URL = "https://olimpiadas-back-production-6956.up.railway.app";
 
 // En producción, usar Railway. En desarrollo, usar VITE_API_URL o "" (relativo)
 export const baseURL = import.meta.env.VITE_API_URL || (isProduction ? RAILWAY_BACKEND_URL : "");
+
+// Log para debug (siempre, para poder diagnosticar en producción)
+if (typeof window !== 'undefined') {
+  console.log('🔧 API Config:', {
+    isProduction,
+    baseURL,
+    hostname: window.location.hostname,
+    env: import.meta.env.MODE,
+    viteApiUrl: import.meta.env.VITE_API_URL,
+  });
+}
 
 export const api = axios.create({
   baseURL,
@@ -116,17 +133,31 @@ api.interceptors.response.use(
     const res = error?.response;
     const status = res?.status;
     const reqUrl = String(error?.config?.url || "");
+    const fullUrl = error?.config?.baseURL 
+      ? `${error.config.baseURL}${error.config.url}` 
+      : error?.config?.url;
 
-    // Log útil para depurar
+    // Log útil para depurar (siempre, incluso en producción para debug)
     console.error("API ERROR", {
-      url: error?.config?.url,
+      url: fullUrl,
+      baseURL: error?.config?.baseURL,
+      path: error?.config?.url,
       method: error?.config?.method,
       status: res?.status,
-      headers: res?.headers,
-      data: res?.data,
+      message: error?.message,
+      code: error?.code,
+      isNetworkError: !res && error?.message?.includes('Network'),
     });
 
-    if (!res) return Promise.reject(error);
+    // Si es un error de red (sin respuesta), mostrar información útil
+    if (!res) {
+      console.error("❌ Network Error - No response from server", {
+        url: fullUrl,
+        message: error?.message,
+        code: error?.code,
+      });
+      return Promise.reject(error);
+    }
 
     // 🚫 Evitar limpiar sesión en rutas de autenticación (handshake)
     const isHandshake =
