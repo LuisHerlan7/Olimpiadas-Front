@@ -10,7 +10,13 @@ import axios, { AxiosError, AxiosHeaders } from "axios";
  * - Patch: NO patear al login por errores de /responsable/fase-final/*
  */
 
-export const baseURL = import.meta.env.VITE_API_URL || "/api";
+// Detectar si estamos en producción (Vercel)
+const isProduction = import.meta.env.PROD || (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app'));
+// URL del backend en Railway (sin /api porque las rutas ya lo incluyen)
+const RAILWAY_BACKEND_URL = "https://olimpiadas-back-production-6956.up.railway.app";
+
+// En producción, usar Railway. En desarrollo, usar VITE_API_URL o "" (relativo)
+export const baseURL = import.meta.env.VITE_API_URL || (isProduction ? RAILWAY_BACKEND_URL : "");
 
 export const api = axios.create({
   baseURL,

@@ -109,7 +109,13 @@ function getBearer(): string | null {
   return localStorage.getItem("ohsansi_token");
 }
 function getBaseURL(): string {
-  return (import.meta.env?.VITE_API_URL as string | undefined) || "/api";
+  // Detectar si estamos en producción (Vercel)
+  const isProduction = import.meta.env.PROD || (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app'));
+  // URL del backend en Railway (con /api porque se usa para construir URLs completas)
+  const RAILWAY_BACKEND_URL = "https://olimpiadas-back-production-6956.up.railway.app/api";
+  
+  // En producción, usar Railway. En desarrollo, usar VITE_API_URL o "/api"
+  return (import.meta.env?.VITE_API_URL as string | undefined) || (isProduction ? RAILWAY_BACKEND_URL : "/api");
 }
 
 /** Normaliza paginadores en formato:
@@ -224,7 +230,9 @@ export function exportUrl(params: {
 }): string {
   const base = getBaseURL();
   const token = getBearer();
-  const u = new URL(`${base}/responsable/clasificacion/export`, window.location.origin);
+  // Si base ya es una URL completa (producción), usarla directamente; si no, usar window.location.origin
+  const baseUrl = base.startsWith('http') ? base : window.location.origin + base;
+  const u = new URL(`${baseUrl}/responsable/clasificacion/export`);
 
   if (params.area_id != null && params.area_id !== "")
     u.searchParams.set("area_id", String(params.area_id));
@@ -233,7 +241,7 @@ export function exportUrl(params: {
   u.searchParams.set("minima", String(params.minima));
   if (token) u.searchParams.set("token", token);
 
-  return u.toString().replace(window.location.origin, "");
+  return u.toString();
 }
 
 export function exportXlsxUrl(params: {
@@ -243,7 +251,9 @@ export function exportXlsxUrl(params: {
 }): string {
   const base = getBaseURL();
   const token = getBearer();
-  const u = new URL(`${base}/responsable/clasificacion/export-xlsx`, window.location.origin);
+  // Si base ya es una URL completa (producción), usarla directamente; si no, usar window.location.origin
+  const baseUrl = base.startsWith('http') ? base : window.location.origin + base;
+  const u = new URL(`${baseUrl}/responsable/clasificacion/export-xlsx`);
 
   if (params.area_id != null && params.area_id !== "")
     u.searchParams.set("area_id", String(params.area_id));
@@ -252,5 +262,5 @@ export function exportXlsxUrl(params: {
   u.searchParams.set("minima", String(params.minima));
   if (token) u.searchParams.set("token", token);
 
-  return u.toString().replace(window.location.origin, "");
+  return u.toString();
 }
