@@ -18,10 +18,11 @@ const isProduction =
     window.location.hostname.includes('ohsansi')
   ));
 
-// URL del backend en Railway (con /api porque las rutas del frontend incluyen /api)
+// URL del backend en Railway (SIN /api porque las rutas del frontend ya incluyen /api)
 const RAILWAY_BACKEND_URL = "https://olimpiadas-back-production-6956.up.railway.app";
 
 // En producción, usar Railway. En desarrollo, usar VITE_API_URL o "" (relativo)
+// NOTA: Las rutas del frontend ya incluyen /api, así que el baseURL NO debe incluirlo
 export const baseURL = import.meta.env.VITE_API_URL || (isProduction ? RAILWAY_BACKEND_URL : "");
 
 // Log para debug (siempre, para poder diagnosticar en producción)
@@ -35,18 +36,17 @@ if (typeof window !== 'undefined') {
   });
 }
 
+// Crear instancia de axios con baseURL configurado
 export const api = axios.create({
-  baseURL: baseURL || undefined, // Usar undefined en lugar de "" para que axios use rutas relativas correctamente
+  baseURL: baseURL, // Usar baseURL directamente (puede ser string vacío en desarrollo)
   withCredentials: false,
   headers: {
     Accept: "application/json",
   },
 });
 
-// Asegurar que el baseURL esté siempre configurado después de crear la instancia
-if (baseURL) {
-  api.defaults.baseURL = baseURL;
-}
+// Forzar que el baseURL esté siempre configurado
+api.defaults.baseURL = baseURL;
 
 // ====== Claves de storage ======
 const TOKEN_KEY = "ohsansi_token";
@@ -97,21 +97,25 @@ api.interceptors.request.use((config) => {
   if (!config.baseURL && baseURL) {
     config.baseURL = baseURL;
   }
+  
+  // Forzar el baseURL si está definido
+  if (baseURL) {
+    config.baseURL = baseURL;
+  }
 
   // Construir URL completa para debug
   const fullUrl = config.baseURL 
     ? `${config.baseURL}${config.url}` 
     : config.url;
   
-  // Log para debug (solo en producción para ver qué está pasando)
-  if (import.meta.env.PROD || (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app'))) {
-    console.log('🌐 API Request:', {
-      method: config.method?.toUpperCase(),
-      url: config.url,
-      baseURL: config.baseURL,
-      fullUrl: fullUrl,
-    });
-  }
+  // Log para debug (siempre en producción para ver qué está pasando)
+  console.log('🌐 API Request:', {
+    method: config.method?.toUpperCase(),
+    url: config.url,
+    baseURL: config.baseURL,
+    fullUrl: fullUrl,
+    baseURLFromVar: baseURL,
+  });
 
   // Token
   const token = getToken();
