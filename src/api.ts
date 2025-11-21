@@ -36,12 +36,17 @@ if (typeof window !== 'undefined') {
 }
 
 export const api = axios.create({
-  baseURL,
+  baseURL: baseURL || undefined, // Usar undefined en lugar de "" para que axios use rutas relativas correctamente
   withCredentials: false,
   headers: {
     Accept: "application/json",
   },
 });
+
+// Asegurar que el baseURL esté siempre configurado después de crear la instancia
+if (baseURL) {
+  api.defaults.baseURL = baseURL;
+}
 
 // ====== Claves de storage ======
 const TOKEN_KEY = "ohsansi_token";
@@ -87,6 +92,26 @@ api.interceptors.request.use((config) => {
     config.headers instanceof AxiosHeaders
       ? config.headers
       : new AxiosHeaders(config.headers);
+
+  // Asegurar que el baseURL esté configurado correctamente
+  if (!config.baseURL && baseURL) {
+    config.baseURL = baseURL;
+  }
+
+  // Construir URL completa para debug
+  const fullUrl = config.baseURL 
+    ? `${config.baseURL}${config.url}` 
+    : config.url;
+  
+  // Log para debug (solo en producción para ver qué está pasando)
+  if (import.meta.env.PROD || (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app'))) {
+    console.log('🌐 API Request:', {
+      method: config.method?.toUpperCase(),
+      url: config.url,
+      baseURL: config.baseURL,
+      fullUrl: fullUrl,
+    });
+  }
 
   // Token
   const token = getToken();
