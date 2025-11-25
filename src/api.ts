@@ -10,18 +10,7 @@ import axios, { AxiosError, AxiosHeaders } from "axios";
  * - Patch: NO patear al login por errores de /responsable/fase-final/*
  */
 
-/**
- * Si no hay VITE_API_URL:
- * - En localhost → usa proxy (`/api`)
- * - En deploy → golpea Railway directo
- */
-const fallbackApiUrl =
-  import.meta.env.VITE_API_URL ||
-  (typeof window !== "undefined" && !/^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)
-    ? "https://olimpiadas-back-production-6956.up.railway.app/api"
-    : "/api");
-
-export const baseURL = fallbackApiUrl;
+export const baseURL = import.meta.env.VITE_API_URL || "/api";
 
 export const api = axios.create({
   baseURL,
