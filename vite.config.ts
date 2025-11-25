@@ -35,12 +35,12 @@ export default defineConfig({
     // Proxy SOLO para API (Laravel en :8000)
     proxy: {
       "/api": {
-        target: "http://127.0.0.1:8000",
+        target: "http://127.0.0.1:8001",
         changeOrigin: true,
         secure: false,
       },
       "/sanctum": {
-        target: "http://127.0.0.1:8000",
+        target: "http://127.0.0.1:8001",
         changeOrigin: true,
         secure: false,
       },
