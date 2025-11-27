@@ -10,7 +10,37 @@ import axios, { AxiosError, AxiosHeaders } from "axios";
  * - Patch: NO patear al login por errores de /responsable/fase-final/*
  */
 
-export const baseURL = import.meta.env.VITE_API_URL || "/api";
+// Validar y normalizar la URL del backend
+const getBaseURL = (): string => {
+  const envURL = import.meta.env.VITE_API_URL;
+  
+  // Si no hay VITE_API_URL, usar ruta relativa (proxy en dev)
+  if (!envURL) {
+    return "/api";
+  }
+  
+  // Asegurar que la URL esté completa y bien formada
+  let url = String(envURL).trim();
+  
+  // Si no empieza con http:// o https://, agregar https://
+  if (!url.startsWith("http://") && !url.startsWith("https://")) {
+    url = `https://${url}`;
+  }
+  
+  // Eliminar barra final si existe (excepto si es solo "/")
+  if (url.endsWith("/") && url.length > 1) {
+    url = url.slice(0, -1);
+  }
+  
+  // Log en desarrollo para debug
+  if (import.meta.env.DEV) {
+    console.log("🔧 API Base URL configurada:", url);
+  }
+  
+  return url;
+};
+
+export const baseURL = getBaseURL();
 
 export const api = axios.create({
   baseURL,
@@ -112,13 +142,28 @@ api.interceptors.response.use(
     const reqUrl = String(error?.config?.url || "");
 
     // Log útil para depurar
+    const fullURL = error?.config?.baseURL 
+      ? `${error.config.baseURL}${error?.config?.url || ""}` 
+      : error?.config?.url;
+    
     console.error("API ERROR", {
+      baseURL: error?.config?.baseURL,
       url: error?.config?.url,
+      fullURL: fullURL,
       method: error?.config?.method,
       status: res?.status,
+      errorCode: error?.code,
+      errorMessage: error?.message,
       headers: res?.headers,
       data: res?.data,
     });
+    
+    // Si es un error de red (ERR_NAME_NOT_RESOLVED, ERR_FAILED, etc.)
+    if (error?.code === "ERR_NAME_NOT_RESOLVED" || error?.code === "ERR_FAILED") {
+      console.error("❌ Error de conexión. Verifica que VITE_API_URL esté configurado correctamente en Vercel.");
+      console.error("🔧 URL configurada:", baseURL);
+      console.error("🔧 VITE_API_URL desde env:", import.meta.env.VITE_API_URL);
+    }
 
     if (!res) return Promise.reject(error);
 
