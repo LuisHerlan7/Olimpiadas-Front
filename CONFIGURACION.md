@@ -23,7 +23,7 @@ Para conectar el frontend con el backend, **DEBES** configurar la variable de en
 
 **Ejemplo de valor correcto:**
 ```
-https://olimpiadas-back-production.up.railway.app/api
+https://olimpiadas-back-production-6956.up.railway.app/api
 ```
 
 **⚠️ IMPORTANTE**: 

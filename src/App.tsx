@@ -8,7 +8,7 @@ import AdminResponsableForm from "./pages/admin/responsables/Form";
 import AdminEvaluadoresList from "./pages/admin/evaluadores/List";
 import AdminEvaluadorForm from "./pages/admin/evaluadores/Form";
 
-import AdminAreasPage from "./pages/admin/areas/Areaspage";
+import AdminAreasPage from "./pages/admin/areas/AreasPage";
 import AdminAreaForm from "./pages/admin/areas/Form";
 
 import AdminImportarInscritos from "./pages/admin/import/ImportInscritos";
