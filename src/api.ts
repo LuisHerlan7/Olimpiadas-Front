@@ -16,11 +16,23 @@ const getBaseURL = (): string => {
   
   // Si no hay VITE_API_URL, usar ruta relativa (proxy en dev)
   if (!envURL) {
+    if (import.meta.env.PROD) {
+      console.error("❌ ERROR: VITE_API_URL no está configurada en producción!");
+      console.error("🔧 Ve a Vercel → Settings → Environment Variables");
+      console.error("🔧 Agrega: VITE_API_URL = https://olimpiadas-back-production-6956.up.railway.app/api");
+    }
     return "/api";
   }
   
   // Asegurar que la URL esté completa y bien formada
   let url = String(envURL).trim();
+  
+  // Validar que la URL no esté truncada o incompleta
+  if (url.length < 10) {
+    console.error("❌ ERROR: VITE_API_URL parece estar incompleta:", url);
+    console.error("🔧 Verifica en Vercel que la URL esté completa");
+    return "/api"; // Fallback a relativa
+  }
   
   // Si no empieza con http:// o https://, agregar https://
   if (!url.startsWith("http://") && !url.startsWith("https://")) {
@@ -32,10 +44,18 @@ const getBaseURL = (): string => {
     url = url.slice(0, -1);
   }
   
-  // Log en desarrollo para debug
-  if (import.meta.env.DEV) {
-    console.log("🔧 API Base URL configurada:", url);
+  // Validar formato básico de URL
+  try {
+    new URL(url); // Esto lanzará error si la URL es inválida
+  } catch (e) {
+    console.error("❌ ERROR: VITE_API_URL tiene formato inválido:", url);
+    console.error("🔧 Verifica en Vercel que la URL sea correcta");
+    return "/api"; // Fallback a relativa
   }
+  
+  // Log para debug (siempre, no solo en dev)
+  console.log("🔧 API Base URL configurada:", url);
+  console.log("🔧 VITE_API_URL desde env:", envURL);
   
   return url;
 };
