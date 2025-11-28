@@ -195,12 +195,36 @@ api.interceptors.response.use(
     }
     // 403 se maneja en el componente, no cerramos sesión
 
-    // 🎯 Si es 422, devolvemos un objeto tipado
+    // 🎯 Si es 422, devolvemos un objeto tipado con mensajes de validación
     if (status === 422) {
       const payload = res.data as { message?: string; errors?: ValidationErrors } | undefined;
+      
+      // Construir mensaje de error más descriptivo
+      let errorMessage = payload?.message || "Error de validación";
+      
+      // Si hay errores específicos, agregarlos al mensaje
+      if (payload?.errors) {
+        const errorDetails = Object.entries(payload.errors)
+          .map(([field, messages]) => {
+            const fieldName = field === "correo" ? "correo electrónico" : field;
+            return `${fieldName}: ${messages.join(", ")}`;
+          })
+          .join("; ");
+        
+        if (errorDetails) {
+          errorMessage = `${errorMessage}. ${errorDetails}`;
+        }
+      }
+      
+      console.error("❌ Error de validación (422):", {
+        message: errorMessage,
+        errors: payload?.errors,
+        requestData: error?.config?.data,
+      });
+      
       const vErr: ValidationErrorShape = {
         status: 422,
-        message: payload?.message,
+        message: errorMessage,
         errors: payload?.errors,
       };
       return Promise.reject(vErr);

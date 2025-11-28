@@ -83,7 +83,12 @@ export default function Login() {
     setCargando(true);
     try {
       // La baseURL ya incluye /api, así que solo usamos /auth/login
-      const { data } = await api.post<LoginResponse>("/auth/login", { correo: correo.trim(), password });
+      // Enviar correo normalizado (lowercase, trimmed) y device
+      const { data } = await api.post<LoginResponse>("/auth/login", { 
+        correo: correo.trim().toLowerCase(), 
+        password: password.trim(),
+        device: "web"
+      });
       setToken(data.token);
       localStorage.setItem("token", data.token);
       localStorage.setItem("usuario", JSON.stringify(data.usuario));
@@ -91,7 +96,27 @@ export default function Login() {
     } catch (err: unknown) {
       let msg = "Error de red. Intenta nuevamente.";
       if (isAxiosError<ApiErrorBody>(err)) {
-        msg = err.response?.data?.message ?? "Credenciales inválidas.";
+        const status = err.response?.status;
+        
+        // Error 422: Validación
+        if (status === 422) {
+          const errorData = err.response?.data;
+          if (errorData?.errors) {
+            // Mostrar errores de validación específicos
+            const errorMessages = Object.values(errorData.errors).flat();
+            msg = errorMessages.join(". ") || "Error en los datos ingresados.";
+          } else {
+            msg = errorData?.message || "Error en los datos ingresados.";
+          }
+        } 
+        // Error 401: Credenciales inválidas
+        else if (status === 401) {
+          msg = "Credenciales inválidas. Verifica tu correo y contraseña.";
+        }
+        // Otros errores
+        else {
+          msg = err.response?.data?.message ?? "Error al iniciar sesión. Intenta nuevamente.";
+        }
       }
       setError(msg);
     } finally {
