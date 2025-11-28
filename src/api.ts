@@ -166,6 +166,18 @@ api.interceptors.response.use(
       ? `${error.config.baseURL}${error?.config?.url || ""}` 
       : error?.config?.url;
     
+    // Parsear datos enviados si existen
+    let requestData = null;
+    try {
+      if (error?.config?.data) {
+        requestData = typeof error.config.data === 'string' 
+          ? JSON.parse(error.config.data) 
+          : error.config.data;
+      }
+    } catch {
+      requestData = error?.config?.data;
+    }
+    
     console.error("API ERROR", {
       baseURL: error?.config?.baseURL,
       url: error?.config?.url,
@@ -174,8 +186,9 @@ api.interceptors.response.use(
       status: res?.status,
       errorCode: error?.code,
       errorMessage: error?.message,
-      headers: res?.headers,
-      data: res?.data,
+      requestData: requestData,
+      responseData: res?.data,
+      responseHeaders: res?.headers,
     });
     
     // Si es un error de red (ERR_NAME_NOT_RESOLVED, ERR_FAILED, etc.)
@@ -240,7 +253,17 @@ api.interceptors.response.use(
         message: errorMessage,
         errors: payload?.errors,
         requestData: error?.config?.data,
+        requestURL: fullURL,
+        requestMethod: error?.config?.method,
       });
+      
+      // Mostrar errores específicos en la consola
+      if (payload?.errors) {
+        console.error("📋 Errores de validación por campo:");
+        Object.entries(payload.errors).forEach(([field, messages]) => {
+          console.error(`  - ${field}:`, messages);
+        });
+      }
       
       const vErr: ValidationErrorShape = {
         status: 422,
