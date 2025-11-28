@@ -247,6 +247,9 @@ api.interceptors.response.use(
         if (errorDetails) {
           errorMessage = `${errorMessage}. ${errorDetails}`;
         }
+      } else if (payload?.message && payload.message.includes("Credenciales inválidas")) {
+        // Si el backend devuelve 422 con "Credenciales inválidas", tratarlo como 401
+        errorMessage = "Credenciales inválidas. Verifica tu correo y contraseña.";
       }
       
       console.error("❌ Error de validación (422):", {
