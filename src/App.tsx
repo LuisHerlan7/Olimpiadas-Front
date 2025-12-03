@@ -14,6 +14,7 @@ import AdminAreaForm from "./pages/admin/areas/Form";
 import AdminImportarInscritos from "./pages/admin/import/ImportInscritos";
 import AdminInscritosList from "./pages/admin/inscritos/List";
 import FasesPage from "./pages/admin/fases/FasesPage";
+import BitacorasPage from "./pages/admin/bitacoras/BitacorasPage";
 
 import { RequireAuth, RequireRole, RequireAnyRole, RedirectIfAuth } from "./routes/guards";
 import LoginPage from "./views/LoginPage";
@@ -70,6 +71,7 @@ export default function App() {
               <Route path="/admin/importar-inscritos" element={<AdminImportarInscritos />} />
               <Route path="/admin/inscritos" element={<AdminInscritosList />} />
               <Route path="/admin/fases" element={<FasesPage />} />
+              <Route path="/admin/bitacoras" element={<BitacorasPage />} />
             </Route>
 
             {/* RESPONSABLE */}
