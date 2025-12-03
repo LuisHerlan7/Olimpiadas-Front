@@ -19,6 +19,9 @@ export default function FasesPage() {
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
   const [guardando, setGuardando] = useState(false);
+  
+  // Fecha mínima: 1 de enero del año actual (solo años actual y posteriores)
+  const fechaMinima = new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0];
 
   const cargarFaseInscripcion = async () => {
     setLoading(true);
@@ -297,6 +300,7 @@ export default function FasesPage() {
                                 type="date"
                                 value={fechaInicio}
                                 onChange={(e) => setFechaInicio(e.target.value)}
+                                min={fechaMinima}
                                 className="w-full px-3 py-2 rounded-lg border border-white/20 bg-slate-700/50 text-white focus:ring-2 focus:ring-cyan-400 focus:outline-none"
                               />
                             </div>
@@ -308,7 +312,7 @@ export default function FasesPage() {
                                 type="date"
                                 value={fechaFin}
                                 onChange={(e) => setFechaFin(e.target.value)}
-                                min={fechaInicio}
+                                min={fechaInicio || fechaMinima}
                                 className="w-full px-3 py-2 rounded-lg border border-white/20 bg-slate-700/50 text-white focus:ring-2 focus:ring-cyan-400 focus:outline-none"
                               />
                             </div>
@@ -477,6 +481,7 @@ export default function FasesPage() {
                                 type="date"
                                 value={fechaInicio}
                                 onChange={(e) => setFechaInicio(e.target.value)}
+                                min={fechaMinima}
                                 className="w-full px-3 py-2 rounded-lg border border-white/20 bg-slate-700/50 text-white focus:ring-2 focus:ring-cyan-400 focus:outline-none"
                               />
                             </div>
@@ -488,7 +493,7 @@ export default function FasesPage() {
                                 type="date"
                                 value={fechaFin}
                                 onChange={(e) => setFechaFin(e.target.value)}
-                                min={fechaInicio}
+                                min={fechaInicio || fechaMinima}
                                 className="w-full px-3 py-2 rounded-lg border border-white/20 bg-slate-700/50 text-white focus:ring-2 focus:ring-cyan-400 focus:outline-none"
                               />
                             </div>

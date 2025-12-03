@@ -26,23 +26,17 @@ export default function BitacorasPage() {
     setState((s) => ({ ...s, loading: true, error: null }));
     try {
       const res = await fetchBitacoras({ page, per_page: 50 });
-      // Asegurar que los datos estén ordenados del más reciente al más antiguo
-      // El backend ya los ordena, pero por si acaso los ordenamos también aquí
-      const sortedData = [...res.data].sort((a, b) => {
-        const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
-        const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
-        return dateB - dateA; // Más reciente primero
-      });
+      // El backend ya ordena del más reciente al más antiguo (orderByDesc)
       setState({
         loading: false,
         error: null,
-        data: sortedData,
+        data: res.data, // Ya viene ordenado del backend
         page: res.current_page,
         lastPage: res.last_page,
         total: res.total,
       });
     } catch (e) {
-      console.error(e);
+      console.error("Error loading bitacoras:", e);
       setState((s) => ({
         ...s,
         loading: false,

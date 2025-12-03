@@ -30,6 +30,9 @@ function addDaysISO(baseISO: string, delta: number): string {
 }
 
 export default function LogCambiosNotas() {
+  // Fecha mínima: 1 de enero del año actual (solo años actual y posteriores)
+  const fechaMinima = new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0];
+  
   // Filtros
   const [qCompetidor, setQCompetidor] = useState("");
   const [qEvaluador, setQEvaluador] = useState("");
@@ -312,6 +315,7 @@ export default function LogCambiosNotas() {
                 className="w-full rounded-xl border border-white/10 bg-slate-900/60 px-2 py-2 outline-none focus:border-cyan-400/40"
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
+                min={fechaMinima}
               />
               <span className="text-slate-400">—</span>
               <input
@@ -319,6 +323,7 @@ export default function LogCambiosNotas() {
                 className="w-full rounded-xl border border-white/10 bg-slate-900/60 px-2 py-2 outline-none focus:border-cyan-400/40"
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
+                min={dateFrom || fechaMinima}
               />
             </div>
           </div>
