@@ -2,6 +2,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import AuthProvider from "./context/AuthProvider";
 
+import HomePage from "./pages/Home/HomePage";
 import AdminResponsablesList from "./pages/admin/responsables/List";
 import AdminResponsableForm from "./pages/admin/responsables/Form";
 
@@ -46,11 +47,11 @@ export default function App() {
           </Route>
 
           {/* Público */}
+          <Route path="/" element={<HomePage />} />
           <Route path="/no-autorizado" element={<NotAuth />} />
-
           {/* Protegido (logueado) */}
           <Route element={<RequireAuth />}>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/dashboard" element={<Dashboard />} />
 
             {/* ADMINISTRADOR */}
