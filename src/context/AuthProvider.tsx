@@ -43,6 +43,8 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     } finally {
       setUser(null);
       localStorage.removeItem("usuario");
+      // 👇 CAMBIO AQUÍ: Redirigir al home después de cerrar sesión
+      window.location.href = '/';
     }
   }, []);
 
