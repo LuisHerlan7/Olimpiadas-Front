@@ -92,12 +92,11 @@ export default function LoginPage() {
           </svg>
           Volver al inicio
         </button>
-      </div>
-      <form
-        onSubmit={onSubmit}
-        aria-label="Formulario de acceso al sistema OH SanSi"
-        className="relative w-full max-w-md rounded-3xl border border-white/10 bg-slate-900/70 backdrop-blur-xl shadow-2xl px-6 py-7 md:px-8 md:py-9"
-      >
+        <form
+          onSubmit={onSubmit}
+          aria-label="Formulario de acceso al sistema OH SanSi"
+          className="relative w-full rounded-3xl border border-white/10 bg-slate-900/70 backdrop-blur-xl shadow-2xl px-6 py-7 md:px-8 md:py-9"
+        >
         <div className="pointer-events-none absolute -inset-1 -z-10 rounded-3xl bg-gradient-to-tr from-cyan-400 to-indigo-500 opacity-30 blur-2xl" />
 
         {/* Selector de tipo de acceso */}
@@ -229,7 +228,7 @@ export default function LoginPage() {
         <p className="mt-4 text-center text-xs text-slate-400">
           Acceso por roles: Administrador, Responsable Académico, Evaluador.
         </p>
-      </form>
+        </form>
       </div>
     </div>
   );
