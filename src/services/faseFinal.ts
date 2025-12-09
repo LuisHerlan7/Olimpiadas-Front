@@ -38,8 +38,8 @@ export type Page<T> = {
 };
 
 type PromoteParams = {
-  area_id?: number | "";
-  nivel_id?: number | "";
+  area_id?: number;
+  nivel_id?: number;
 };
 
 type ListParams = {

@@ -83,6 +83,11 @@ export async function createInscrito(payload: CreateInscritoPayload): Promise<In
   return data;
 }
 
+export async function updateInscrito(id: number, payload: Partial<CreateInscritoPayload>): Promise<InscritoResponse> {
+  const { data } = await api.put<InscritoResponse>(`/inscritos/${id}`, payload);
+  return data;
+}
+
 export async function deleteInscrito(id: number): Promise<{ message: string }> {
   const { data } = await api.delete<{ message: string }>(`/inscritos/${id}`);
   return data;

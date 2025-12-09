@@ -94,10 +94,11 @@ export default function FaseFinal() {
   async function handlePreparar() {
     setWorking(true);
     try {
-      const res = await promoverPorFiltro({
-        area_id: filtros.area_id ?? "",
-        nivel_id: filtros.nivel_id ?? ""
-      });
+      const payload: Record<string, number> = {};
+      if (filtros.area_id) payload.area_id = filtros.area_id;
+      if (filtros.nivel_id) payload.nivel_id = filtros.nivel_id;
+      
+      const res = await promoverPorFiltro(payload);
       alert(res.message + (res.total != null ? ` (Total: ${res.total})` : ""));
       await loadFinalistas(1);
       setTab("finalistas");

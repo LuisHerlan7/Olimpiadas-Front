@@ -13,6 +13,17 @@ interface Competidor {
   nivel: string;
 }
 
+interface EditFormData {
+  documento: string;
+  nombres: string;
+  apellidos: string;
+  unidad: string;
+  area: string;
+  nivel: string;
+  area_id?: number | null;
+  nivel_id?: number | null;
+}
+
 type Filtros = {
   area: string;
   nivel: string;
@@ -40,6 +51,21 @@ export default function CompetidoresList() {
     niveles: [],
     unidades: [],
   });
+
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [formData, setFormData] = useState<EditFormData>({
+    documento: "",
+    nombres: "",
+    apellidos: "",
+    unidad: "",
+    area: "",
+    nivel: "",
+    area_id: null,
+    nivel_id: null,
+  });
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   // 1) Cargar opciones de filtros (independientes de la lista)
   useEffect(() => {
@@ -102,6 +128,97 @@ else if (payload && typeof payload === "object" && "data" in payload) {
   }, [filtros.area, filtros.nivel, filtros.unidad]);
 
   // Exportaciones
+    // 📝 Abrir modal de edición
+    const abrirModalEditar = (competidor: Competidor) => {
+      setEditingId(competidor.id);
+      setFormData({
+        documento: competidor.documento,
+        nombres: competidor.nombres,
+        apellidos: competidor.apellidos,
+        unidad: competidor.unidad,
+        area: competidor.area,
+        nivel: competidor.nivel,
+        area_id: null,
+        nivel_id: null,
+      });
+      setFormErrors({});
+      setShowModal(true);
+    };
+
+    // 🔒 Cerrar modal
+    const cerrarModal = () => {
+      setShowModal(false);
+      setEditingId(null);
+      setFormData({
+        documento: "",
+        nombres: "",
+        apellidos: "",
+        unidad: "",
+        area: "",
+        nivel: "",
+        area_id: null,
+        nivel_id: null,
+      });
+      setFormErrors({});
+    };
+
+    // 💾 Guardar cambios
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setFormErrors({});
+      setSaving(true);
+
+      try {
+        const errors: Record<string, string> = {};
+        if (!formData.documento.trim() || !/^\d{5,}$/.test(formData.documento)) {
+          errors.documento = "Documento debe tener al menos 5 dígitos";
+        }
+        if (!formData.nombres.trim()) {
+          errors.nombres = "Nombres es requerido";
+        }
+        if (!formData.apellidos.trim()) {
+          errors.apellidos = "Apellidos es requerido";
+        }
+        if (!formData.area.trim()) {
+          errors.area = "Área es requerida";
+        }
+        if (!formData.nivel.trim()) {
+          errors.nivel = "Nivel es requerido";
+        }
+
+        if (Object.keys(errors).length > 0) {
+          setFormErrors(errors);
+          setSaving(false);
+          return;
+        }
+
+        if (editingId) {
+          await api.put(`/inscritos/${editingId}`, formData);
+          await cargarDatos();
+          cerrarModal();
+          alert("Competidor actualizado exitosamente");
+        }
+      } catch (error: unknown) {
+        if (typeof error === "object" && error !== null && "response" in error) {
+          const axiosError = error as { response?: { data?: { errors?: Record<string, string[]>; message?: string } } };
+          const errorData = axiosError.response?.data;
+          if (errorData?.errors) {
+            const normalizedErrors: Record<string, string> = {};
+            Object.entries(errorData.errors).forEach(([key, messages]) => {
+              normalizedErrors[key] = Array.isArray(messages) ? messages[0] : String(messages);
+            });
+            setFormErrors(normalizedErrors);
+          } else {
+            alert(errorData?.message || "Error al actualizar el competidor");
+          }
+        } else {
+          alert("Error al actualizar el competidor");
+        }
+      } finally {
+        setSaving(false);
+      }
+    };
+
   const exportarCSV = () => {
     if (!lista.length) return;
     const header = Object.keys(lista[0]) as (keyof Competidor)[];
@@ -219,13 +336,14 @@ else if (payload && typeof payload === "object" && "data" in payload) {
                 <th className="px-4 py-2 text-left">Unidad</th>
                 <th className="px-4 py-2 text-left">Área</th>
                 <th className="px-4 py-2 text-left">Nivel</th>
+                              <th className="px-4 py-2 text-center">Acciones</th>
               </tr>
             </thead>
 
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-6 text-center text-slate-400 animate-pulse">
+                  <td colSpan={7} className="px-4 py-6 text-center text-slate-400 animate-pulse">
                     Cargando competidores…
                   </td>
                 </tr>
@@ -238,11 +356,20 @@ else if (payload && typeof payload === "object" && "data" in payload) {
                     <td className="px-4 py-2">{c.unidad}</td>
                     <td className="px-4 py-2">{c.area}</td>
                     <td className="px-4 py-2">{c.nivel}</td>
+                                      <td className="px-4 py-2 text-center">
+                                        <button
+                                          onClick={() => abrirModalEditar(c)}
+                                          className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-xs"
+                                          title="Editar competidor"
+                                        >
+                                          ✏️ Editar
+                                        </button>
+                                      </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-4 py-6 text-center text-slate-400">
+                  <td colSpan={7} className="px-4 py-6 text-center text-slate-400">
                     No hay competidores con los filtros actuales.
                   </td>
                 </tr>
@@ -254,6 +381,95 @@ else if (payload && typeof payload === "object" && "data" in payload) {
         <p className="text-xs text-slate-400 mt-4">
           Los cambios en el padrón de competidores se actualizan tras recargar la vista o importar nuevos inscritos.
         </p>
+        {/* Modal de edición */}
+        {showModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+            <div className="w-full max-w-2xl bg-white text-slate-900 rounded-xl p-6">
+              <h2 className="text-lg font-semibold mb-4">{editingId ? 'Editar competidor' : 'Nuevo competidor'}</h2>
+              <form onSubmit={handleSubmit} className="space-y-3">
+                <div className="grid md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm text-slate-600">Documento</label>
+                    <input
+                      className="w-full rounded-xl border px-3 py-2"
+                      value={formData.documento}
+                      onChange={(e) => setFormData({ ...formData, documento: e.target.value })}
+                    />
+                    {formErrors.documento && <p className="text-xs text-rose-600">{formErrors.documento}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-sm text-slate-600">Unidad</label>
+                    <input
+                      className="w-full rounded-xl border px-3 py-2"
+                      value={formData.unidad}
+                      onChange={(e) => setFormData({ ...formData, unidad: e.target.value })}
+                    />
+                    {formErrors.unidad && <p className="text-xs text-rose-600">{formErrors.unidad}</p>}
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm text-slate-600">Nombres</label>
+                    <input
+                      className="w-full rounded-xl border px-3 py-2"
+                      value={formData.nombres}
+                      onChange={(e) => setFormData({ ...formData, nombres: e.target.value })}
+                    />
+                    {formErrors.nombres && <p className="text-xs text-rose-600">{formErrors.nombres}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-sm text-slate-600">Apellidos</label>
+                    <input
+                      className="w-full rounded-xl border px-3 py-2"
+                      value={formData.apellidos}
+                      onChange={(e) => setFormData({ ...formData, apellidos: e.target.value })}
+                    />
+                    {formErrors.apellidos && <p className="text-xs text-rose-600">{formErrors.apellidos}</p>}
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm text-slate-600">Área</label>
+                    <select
+                      className="w-full rounded-xl border px-3 py-2"
+                      value={formData.area}
+                      onChange={(e) => setFormData({ ...formData, area: e.target.value })}
+                    >
+                      <option value="">(Seleccione)</option>
+                      {opciones.areas.map((a) => (
+                        <option key={a} value={a}>{a}</option>
+                      ))}
+                    </select>
+                    {formErrors.area && <p className="text-xs text-rose-600">{formErrors.area}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-sm text-slate-600">Nivel</label>
+                    <select
+                      className="w-full rounded-xl border px-3 py-2"
+                      value={formData.nivel}
+                      onChange={(e) => setFormData({ ...formData, nivel: e.target.value })}
+                    >
+                      <option value="">(Seleccione)</option>
+                      {opciones.niveles.map((n) => (
+                        <option key={n} value={n}>{n}</option>
+                      ))}
+                    </select>
+                    {formErrors.nivel && <p className="text-xs text-rose-600">{formErrors.nivel}</p>}
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 mt-4">
+                  <button type="button" onClick={cerrarModal} className="px-4 py-2 rounded-xl border">Cancelar</button>
+                  <button type="submit" disabled={saving} className="px-4 py-2 bg-cyan-600 text-white rounded-xl">
+                    {saving ? 'Guardando…' : 'Guardar'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

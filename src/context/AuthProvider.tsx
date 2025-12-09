@@ -38,13 +38,12 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   }, []);
 
   const logout = useCallback(async () => {
+    setUser(null);
     try {
       await svcLogout();
     } finally {
-      setUser(null);
-      localStorage.removeItem("usuario");
-      // 👇 CAMBIO AQUÍ: Redirigir al home después de cerrar sesión
-      window.location.href = '/';
+      // svcLogout() ya limpia el localStorage, solo redirigir
+      window.location.href = '/login';
     }
   }, []);
 

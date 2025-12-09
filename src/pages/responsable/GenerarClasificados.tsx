@@ -9,6 +9,7 @@ import {
   type ClasificadosPagination,
   type OpcionCatalogo,
 } from "../../services/clasificacion";
+import { getFaseClasificados, type FaseInscripcion } from "../../services/fases";
 import { Link, useLocation } from "react-router-dom";
 import { api } from "../../api";
 
@@ -69,6 +70,10 @@ export default function GenerarClasificados() {
   const [areas, setAreas] = useState<OpcionCatalogo[]>([]);
   const [niveles, setNiveles] = useState<OpcionCatalogo[]>([]);
 
+  // Fase de Clasificados
+  const [faseClasificados, setFaseClasificados] = useState<FaseInscripcion | null>(null);
+  const [loadingFase, setLoadingFase] = useState(true);
+
   // Filtros
   const [areaSel, setAreaSel] = useState<string>("");
   const [nivelSel, setNivelSel] = useState<string>("");
@@ -126,6 +131,39 @@ export default function GenerarClasificados() {
       } catch {
         setAreas([]);
         setNiveles([]);
+      }
+    })();
+  }, []);
+
+  // Cargar estado de la fase de clasificados
+  useEffect(() => {
+    (async () => {
+      setLoadingFase(true);
+      try {
+        const fase = await getFaseClasificados();
+        setFaseClasificados(fase);
+        
+        // Verificar si está activa (dentro del período)
+        const ahora = new Date();
+        let estaActiva = fase.activa;
+        
+        if (estaActiva && fase.fecha_inicio) {
+          const inicio = new Date(fase.fecha_inicio);
+          if (ahora < inicio) estaActiva = false;
+        }
+        if (estaActiva && fase.fecha_fin) {
+          const fin = new Date(fase.fecha_fin);
+          if (ahora > fin) estaActiva = false;
+        }
+        
+        // Si la fase está activa y tiene nota mínima, usarla
+        if (estaActiva && fase.nota_minima_suficiente) {
+          setMinima(fase.nota_minima_suficiente);
+        }
+      } catch {
+        setFaseClasificados(null);
+      } finally {
+        setLoadingFase(false);
       }
     })();
   }, []);
@@ -351,6 +389,37 @@ export default function GenerarClasificados() {
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-6 md:px-6">
+        {/* Alerta de fase no activa */}
+        {!loadingFase && faseClasificados && (() => {
+          const ahora = new Date();
+          let estaActiva = faseClasificados.activa;
+          
+          if (estaActiva && faseClasificados.fecha_inicio) {
+            const inicio = new Date(faseClasificados.fecha_inicio);
+            if (ahora < inicio) estaActiva = false;
+          }
+          if (estaActiva && faseClasificados.fecha_fin) {
+            const fin = new Date(faseClasificados.fecha_fin);
+            if (ahora > fin) estaActiva = false;
+          }
+          
+          return !estaActiva ? (
+            <div className="mb-6 rounded-xl border border-amber-500/50 bg-amber-500/10 p-4">
+              <div className="flex gap-3">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-amber-400 flex-shrink-0 mt-0.5">
+                  <path d="M12 9v4m0 4h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
+                </svg>
+                <div>
+                  <p className="font-semibold text-amber-200">Fase de Clasificados no habilitada</p>
+                  <p className="text-sm text-amber-300/80 mt-1">
+                    La fase de clasificados aún no está activa. Por favor, habilítala desde el panel de administrador en /admin/fases.
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : null;
+        })()}
+
         {/* Filtros */}
         <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
           <div>
@@ -431,11 +500,11 @@ export default function GenerarClasificados() {
                 Guardar preferencia
               </button>
               <button
-                onClick={doPreview}
+                onClick={() => void doPreview()}
                 disabled={loading}
-                className="rounded-xl bg-cyan-500 px-3 py-2 text-sm font-semibold text-slate-900 shadow hover:bg-cyan-400 disabled:opacity-60"
+                className="flex-1 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white px-3 py-2 text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? "Calculando…" : "Aplicar"}
+                {loading ? "Generando..." : "Generar lista de clasificados"}
               </button>
             </div>
           </div>

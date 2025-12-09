@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import AdminShell from "../../../components/AdminShell";
 import { api } from "../../../api"; // Instancia Axios con token
-import { createInscrito, deleteInscrito, type CreateInscritoPayload } from "../../../services/inscritos";
+import { createInscrito, updateInscrito, deleteInscrito, type CreateInscritoPayload } from "../../../services/inscritos";
 import { fetchAreas, fetchNiveles, type Area, type Nivel } from "../../../services/catalogos";
 import { getFaseInscripcion, type FaseInscripcion } from "../../../services/fases";
 
@@ -28,6 +28,7 @@ export default function AdminInscritosList() {
   const [niveles, setNiveles] = useState<Nivel[]>([]);
   const [faseInscripcion, setFaseInscripcion] = useState<FaseInscripcion | null>(null);
   const [loadingFase, setLoadingFase] = useState(true);
+  const [editingId, setEditingId] = useState<number | null>(null);
   
   // Formulario
   const [formData, setFormData] = useState<CreateInscritoPayload>({
@@ -119,6 +120,7 @@ export default function AdminInscritosList() {
       alert(faseInscripcion?.mensaje || "La fase de inscripción no está activa en este momento.");
       return;
     }
+    setEditingId(null);
     setFormData({
       documento: "",
       nombres: "",
@@ -133,9 +135,27 @@ export default function AdminInscritosList() {
     setShowModal(true);
   };
 
+  // 📝 Abrir modal de edición
+  const abrirModalEditar = (inscrito: Inscrito) => {
+    setEditingId(inscrito.id);
+    setFormData({
+      documento: inscrito.documento,
+      nombres: inscrito.nombres,
+      apellidos: inscrito.apellidos,
+      unidad: inscrito.unidad,
+      area: inscrito.area,
+      nivel: inscrito.nivel,
+      area_id: null,
+      nivel_id: null,
+    });
+    setFormErrors({});
+    setShowModal(true);
+  };
+
   // 🔒 Cerrar modal
   const cerrarModal = () => {
     setShowModal(false);
+    setEditingId(null);
     setFormData({
       documento: "",
       nombres: "",
@@ -149,12 +169,12 @@ export default function AdminInscritosList() {
     setFormErrors({});
   };
 
-  // 💾 Guardar inscrito
+  // 💾 Guardar inscrito (crear o editar)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Verificar si la fase está activa antes de guardar
-    if (!faseInscripcion?.activa) {
+    // Verificar si la fase está activa antes de guardar (solo para creación)
+    if (!editingId && !faseInscripcion?.activa) {
       alert(faseInscripcion?.mensaje || "La fase de inscripción no está activa en este momento.");
       return;
     }
@@ -187,7 +207,13 @@ export default function AdminInscritosList() {
         return;
       }
 
-      await createInscrito(formData);
+      if (editingId) {
+        // Actualizar inscrito existente
+        await updateInscrito(editingId, formData);
+      } else {
+        // Crear nuevo inscrito
+        await createInscrito(formData);
+      }
       
       // Recargar lista
       const { data } = await api.get<Inscrito[]>("/inscritos");
@@ -205,7 +231,7 @@ export default function AdminInscritosList() {
       setInscritos(lista);
 
       cerrarModal();
-      alert("Inscrito creado exitosamente");
+      alert(editingId ? "Inscrito actualizado exitosamente" : "Inscrito creado exitosamente");
     } catch (error: unknown) {
       if (
         typeof error === "object" &&
@@ -221,10 +247,10 @@ export default function AdminInscritosList() {
           });
           setFormErrors(normalizedErrors);
         } else {
-          alert(errorData?.message || "Error al crear el inscrito");
+          alert(errorData?.message || (editingId ? "Error al actualizar el inscrito" : "Error al crear el inscrito"));
         }
       } else {
-        alert("Error al crear el inscrito");
+        alert(editingId ? "Error al actualizar el inscrito" : "Error al crear el inscrito");
       }
     } finally {
       setSaving(false);
@@ -400,7 +426,14 @@ export default function AdminInscritosList() {
                       <td className="px-4 py-2">{inscrito.unidad}</td>
                       <td className="px-4 py-2">{inscrito.area}</td>
                       <td className="px-4 py-2">{inscrito.nivel}</td>
-                      <td className="px-4 py-2 text-center">
+                      <td className="px-4 py-2 text-center flex gap-2 justify-center">
+                        <button
+                          onClick={() => abrirModalEditar(inscrito)}
+                          className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors text-sm"
+                          title="Editar inscrito"
+                        >
+                          ✏️ Editar
+                        </button>
                         <button
                           onClick={() => handleDelete(inscrito.id)}
                           disabled={deleting === inscrito.id}
@@ -436,12 +469,14 @@ export default function AdminInscritosList() {
         )}
       </div>
 
-      {/* Modal de creación */}
+      {/* Modal de creación/edición */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-slate-900">Nuevo Inscrito</h2>
+              <h2 className="text-xl font-bold text-slate-900">
+                {editingId ? "Editar Inscrito" : "Nuevo Inscrito"}
+              </h2>
               <button
                 onClick={cerrarModal}
                 className="text-slate-400 hover:text-slate-600"

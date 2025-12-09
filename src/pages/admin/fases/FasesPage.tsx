@@ -7,6 +7,9 @@ import {
   getFaseAsignacion,
   updateFaseAsignacion,
   cancelarFaseAsignacion,
+  getFaseClasificados,
+  updateFaseClasificados,
+  cancelarFaseClasificados,
   type FaseInscripcion 
 } from "../../../services/fases";
 
@@ -14,10 +17,12 @@ export default function FasesPage() {
   const [activeFase, setActiveFase] = useState<"inscripcion" | "asignacion" | "clasificados" | null>(null);
   const [faseInscripcion, setFaseInscripcion] = useState<FaseInscripcion | null>(null);
   const [faseAsignacion, setFaseAsignacion] = useState<FaseInscripcion | null>(null);
+  const [faseClasificados, setFaseClasificados] = useState<FaseInscripcion | null>(null);
   const [loading, setLoading] = useState(false);
   const [editando, setEditando] = useState(false);
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
+  const [notaMinima, setNotaMinima] = useState("");
   const [guardando, setGuardando] = useState(false);
   
   // Fecha mínima: 1 de enero del año actual (solo años actual y posteriores)
@@ -51,12 +56,30 @@ export default function FasesPage() {
     }
   };
 
+  const cargarFaseClasificados = async () => {
+    setLoading(true);
+    try {
+      const data = await getFaseClasificados();
+      setFaseClasificados(data);
+      setFechaInicio(data.fecha_inicio ? data.fecha_inicio.split('T')[0] : "");
+      setFechaFin(data.fecha_fin ? data.fecha_fin.split('T')[0] : "");
+      setNotaMinima(String(data.nota_minima_suficiente ?? 70));
+    } catch (error) {
+      console.error("Error al cargar fase de clasificados:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const abrirFase = async (fase: "inscripcion" | "asignacion" | "clasificados") => {
     setActiveFase(fase);
+    setNotaMinima("");
     if (fase === "inscripcion") {
       await cargarFaseInscripcion();
     } else if (fase === "asignacion") {
       await cargarFaseAsignacion();
+    } else if (fase === "clasificados") {
+      await cargarFaseClasificados();
     }
   };
 
@@ -68,6 +91,11 @@ export default function FasesPage() {
   const handleGuardar = async () => {
     if (!fechaInicio || !fechaFin) {
       alert("Por favor, completa ambas fechas");
+      return;
+    }
+
+    if (activeFase === "clasificados" && !notaMinima) {
+      alert("Por favor, ingresa la nota mínima suficiente");
       return;
     }
 
@@ -90,6 +118,14 @@ export default function FasesPage() {
           activa: true,
         });
         setFaseAsignacion(updated);
+      } else if (activeFase === "clasificados") {
+        const updated = await updateFaseClasificados({
+          fecha_inicio: fechaInicioISO,
+          fecha_fin: fechaFinISO,
+          activa: true,
+          nota_minima_suficiente: Number(notaMinima) || 70,
+        });
+        setFaseClasificados(updated);
       }
       
       setEditando(false);
@@ -104,7 +140,9 @@ export default function FasesPage() {
   const handleCancelarFase = async () => {
     const mensaje = activeFase === "inscripcion" 
       ? "¿Estás seguro de cancelar la fase de inscripción? Esto bloqueará la subida de inscritos."
-      : "¿Estás seguro de cancelar la fase de asignación? Esto bloqueará la subida de notas.";
+      : activeFase === "asignacion"
+      ? "¿Estás seguro de cancelar la fase de asignación? Esto bloqueará la subida de notas."
+      : "¿Estás seguro de cancelar la fase de clasificados? Esto bloqueará la generación de clasificados.";
     
     if (!confirm(mensaje)) {
       return;
@@ -120,6 +158,10 @@ export default function FasesPage() {
         const updated = await cancelarFaseAsignacion();
         setFaseAsignacion(updated);
         alert("Fase de asignación cancelada exitosamente");
+      } else if (activeFase === "clasificados") {
+        const updated = await cancelarFaseClasificados();
+        setFaseClasificados(updated);
+        alert("Fase de clasificados cancelada exitosamente");
       }
     } catch (error: any) {
       alert(error?.response?.data?.message || "Error al cancelar la fase");
@@ -141,6 +183,7 @@ export default function FasesPage() {
   const getFaseActual = (): FaseInscripcion | null => {
     if (activeFase === "inscripcion") return faseInscripcion;
     if (activeFase === "asignacion") return faseAsignacion;
+    if (activeFase === "clasificados") return faseClasificados;
     return null;
   };
 
@@ -592,10 +635,183 @@ export default function FasesPage() {
                 </svg>
               </button>
             </div>
-            <div className="rounded-xl border border-white/10 bg-slate-800/50 p-6">
-              <p className="text-slate-300">Contenido de la fase de Clasificados.</p>
-              <p className="text-sm text-slate-400 mt-2">Aquí puedes visualizar y gestionar los participantes clasificados.</p>
-            </div>
+            
+            {loading ? (
+              <div className="rounded-xl border border-white/10 bg-slate-800/50 p-6 text-center">
+                <p className="text-slate-300">Cargando información...</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {(() => {
+                  const faseActual = getFaseActual();
+                  const estaEnFecha = verificarSiEstaEnFecha(faseActual);
+                  
+                  return (
+                    <>
+                      {/* Estado de la fase */}
+                      <div className={`rounded-xl border p-4 ${
+                        faseActual?.cancelada 
+                          ? "border-red-500/50 bg-red-500/10" 
+                          : estaEnFecha
+                          ? "border-emerald-500/50 bg-emerald-500/10"
+                          : "border-amber-500/50 bg-amber-500/10"
+                      }`}>
+                        <div className="flex items-center gap-2 mb-2">
+                          {faseActual?.cancelada ? (
+                            <>
+                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-red-400">
+                                <path d="M6 18L18 6M6 6l12 12"/>
+                              </svg>
+                              <p className="font-semibold text-red-300">Fase Cancelada</p>
+                            </>
+                          ) : estaEnFecha ? (
+                            <>
+                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-emerald-400">
+                                <path d="M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
+                              </svg>
+                              <p className="font-semibold text-emerald-300">Fase Activa</p>
+                            </>
+                          ) : (
+                            <>
+                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-amber-400">
+                                <path d="M12 9v4m0 4h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
+                              </svg>
+                              <p className="font-semibold text-amber-300">Fase Inactiva</p>
+                            </>
+                          )}
+                        </div>
+                        <p className="text-sm text-slate-300">
+                          {faseActual?.mensaje || (estaEnFecha 
+                            ? "La fase está activa y se pueden generar clasificados" 
+                            : "La fase no está activa, no se pueden generar clasificados")}
+                        </p>
+                      </div>
+
+                      {/* Fechas y Nota Mínima */}
+                      <div className="rounded-xl border border-white/10 bg-slate-800/50 p-6 space-y-4">
+                        <h3 className="text-lg font-semibold text-white">Configuración de Fechas y Criterios</h3>
+                        
+                        {editando ? (
+                          <div className="space-y-4">
+                            <div>
+                              <label className="block text-sm font-medium text-slate-300 mb-2">
+                                Fecha de Inicio
+                              </label>
+                              <input
+                                type="date"
+                                value={fechaInicio}
+                                onChange={(e) => setFechaInicio(e.target.value)}
+                                min={fechaMinima}
+                                className="w-full px-3 py-2 rounded-lg border border-white/20 bg-slate-700/50 text-white focus:ring-2 focus:ring-cyan-400 focus:outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-slate-300 mb-2">
+                                Fecha de Fin
+                              </label>
+                              <input
+                                type="date"
+                                value={fechaFin}
+                                onChange={(e) => setFechaFin(e.target.value)}
+                                min={fechaInicio || fechaMinima}
+                                className="w-full px-3 py-2 rounded-lg border border-white/20 bg-slate-700/50 text-white focus:ring-2 focus:ring-cyan-400 focus:outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-slate-300 mb-2">
+                                Nota Mínima Suficiente (0-100)
+                              </label>
+                              <input
+                                type="number"
+                                min="0"
+                                max="100"
+                                value={notaMinima}
+                                onChange={(e) => setNotaMinima(e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-white/20 bg-slate-700/50 text-white focus:ring-2 focus:ring-cyan-400 focus:outline-none"
+                              />
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <div>
+                              <p className="text-sm text-slate-400">Fecha de Inicio</p>
+                              <p className="text-lg font-semibold text-white">
+                                {faseActual?.fecha_inicio 
+                                  ? new Date(faseActual.fecha_inicio).toLocaleDateString('es-BO', { 
+                                      year: 'numeric', 
+                                      month: 'long', 
+                                      day: 'numeric' 
+                                    })
+                                  : "No configurada"}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-slate-400">Fecha de Fin</p>
+                              <p className="text-lg font-semibold text-white">
+                                {faseActual?.fecha_fin 
+                                  ? new Date(faseActual.fecha_fin).toLocaleDateString('es-BO', { 
+                                      year: 'numeric', 
+                                      month: 'long', 
+                                      day: 'numeric' 
+                                    })
+                                  : "No configurada"}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-slate-400">Nota Mínima Suficiente</p>
+                              <p className="text-lg font-semibold text-white">
+                                {faseActual?.nota_minima_suficiente ?? 70} puntos
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Botones */}
+                        <div className="flex gap-3 pt-4 border-t border-white/10">
+                          {editando ? (
+                            <>
+                              <button
+                                onClick={handleGuardar}
+                                disabled={guardando}
+                                className="flex-1 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                {guardando ? "Guardando..." : "Guardar Cambios"}
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setEditando(false);
+                                  cargarFaseClasificados();
+                                }}
+                                disabled={guardando}
+                                className="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded-lg transition-colors disabled:opacity-50"
+                              >
+                                Cancelar
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                onClick={() => setEditando(true)}
+                                className="flex-1 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors"
+                              >
+                                Editar
+                              </button>
+                              <button
+                                onClick={handleCancelarFase}
+                                disabled={guardando || faseActual?.cancelada}
+                                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                {guardando ? "Cancelando..." : "Cancelar Fase"}
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+            )}
           </div>
         </div>
       )}
