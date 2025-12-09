@@ -1,4 +1,4 @@
-import { Link, useSearchParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { listAreas, deleteArea, type Area } from "../../../services/areas";
 import { api } from "../../../api";
@@ -15,12 +15,7 @@ interface Alert {
 }
 
 export default function AdminAreasPage() {
-<<<<<<< HEAD
   const [areas, setAreas] = useState<AreaWithInscritos[]>([]);
-=======
-  const [searchParams] = useSearchParams();
-  const [areas, setAreas] = useState<Area[]>([]);
->>>>>>> 1ff207e60b3cb443354e7d3185b5620c83095496
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [alert, setAlert] = useState<Alert | null>(null);
@@ -75,7 +70,7 @@ export default function AdminAreasPage() {
     return () => {
       mounted = false;
     };
-  }, [searchParams]);
+  }, []);
 
   const handleDeleteClick = (id: number, inscritosCount: number = 0) => {
     if (inscritosCount > 0) {
@@ -111,39 +106,15 @@ export default function AdminAreasPage() {
       setTimeout(() => setAlert(null), 3000);
     } catch (error: any) {
       console.error("Error al eliminar área:", error);
-      let title = "No se pudo eliminar el área";
       let message = "Ocurrió un error inesperado. Intenta nuevamente.";
-      let details = "";
       
       if (error?.response?.data) {
-        const { message: serverMessage, dependencias } = error.response.data;
+        const { message: serverMessage } = error.response.data;
         message = serverMessage || message;
-        
-        if (dependencias) {
-          const deps = [];
-          if (dependencias.responsables) deps.push(`${dependencias.responsables} responsable(s)`);
-          if (dependencias.evaluadores) deps.push(`${dependencias.evaluadores} evaluador(es)`);
-          if (dependencias.inscritos) deps.push(`${dependencias.inscritos} inscrito(s)`);
-          
-          if (deps.length > 0) {
-            title = "No se puede eliminar esta área";
-            message = "Existen registros asociados a esta área:";
-            details = deps.join("\n");
-          }
-        }
       }
       
-<<<<<<< HEAD
-      setErrorMessage(errorMessage);
-      setTimeout(() => setErrorMessage(null), 6000);
-=======
-      setAlert({
-        type: "error",
-        title,
-        message,
-        details: details || undefined,
-      });
->>>>>>> 1ff207e60b3cb443354e7d3185b5620c83095496
+      setErrorMessage(message);
+      setTimeout(() => setErrorMessage(null), 5000);
     } finally {
       setConfirmStep(null);
       setDeletingId(null);
@@ -280,7 +251,6 @@ export default function AdminAreasPage() {
                       </td>
                     </tr>
                   ) : (
-<<<<<<< HEAD
                     areas.map((a: AreaWithInscritos) => {
                       const hasInscritos = (a.inscritos_count || 0) > 0;
                       return (
@@ -299,47 +269,6 @@ export default function AdminAreasPage() {
                               <Link 
                                 to={`/admin/areas/${a.id}`} 
                                 className="text-cyan-300 text-xs font-semibold hover:text-cyan-200 whitespace-nowrap px-1"
-=======
-                    areas.map((a: Area) => (
-                      <tr key={a.id} className={confirmStep === a.id ? "bg-red-900/20" : "hover:bg-slate-800/30"}>
-                        <td className="py-2.5 px-2 text-slate-300 text-xs">{a.id}</td>
-                        <td className="py-2.5 px-3 text-slate-300 font-medium">{a.nombre}</td>
-                        <td className="py-2.5 px-2 text-slate-300 text-center text-xs">{a.codigo ?? "—"}</td>
-                        <td className={`py-2.5 px-2 text-center text-xs ${a.activo ? "text-emerald-400 font-medium" : "text-slate-300"}`}>
-                          <span>{a.activo ? "Activo" : "Inactivo"}</span>
-                        </td>
-                        <td className="py-2.5 px-2">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <Link 
-                              to={`/admin/areas/${a.id}`} 
-                              className="text-cyan-300 text-xs font-semibold hover:text-cyan-200 whitespace-nowrap px-1"
-                            >
-                              Editar
-                            </Link>
-                            {confirmStep === a.id ? (
-                              <div className="flex items-center gap-1">
-                                <span className="text-[10px] text-red-300 font-semibold whitespace-nowrap">¿Confirmar?</span>
-                                <button
-                                  onClick={() => handleConfirmDelete(a.id!)}
-                                  disabled={deletingId === a.id}
-                                  className="px-1.5 py-0.5 text-[10px] font-semibold text-white bg-red-600 rounded hover:bg-red-700 disabled:opacity-50 whitespace-nowrap"
-                                >
-                                  Sí
-                                </button>
-                                <button
-                                  onClick={handleCancelDelete}
-                                  disabled={deletingId === a.id}
-                                  className="px-1.5 py-0.5 text-[10px] font-semibold text-slate-300 bg-slate-700 rounded hover:bg-slate-600 disabled:opacity-50 whitespace-nowrap"
-                                >
-                                  No
-                                </button>
-                              </div>
-                            ) : (
-                              <button
-                                onClick={() => handleDeleteClick(a.id!)}
-                                disabled={deletingId !== null}
-                                className="text-red-400 text-xs font-semibold hover:text-red-300 disabled:opacity-50 whitespace-nowrap px-1"
->>>>>>> 1ff207e60b3cb443354e7d3185b5620c83095496
                               >
                                 Editar
                               </Link>
