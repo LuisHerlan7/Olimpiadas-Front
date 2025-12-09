@@ -1,8 +1,8 @@
 // src/App.tsx
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import AuthProvider from "./context/AuthProvider";
+import OlimpiadasHome from "./pages/Home/home";
 
-import HomePage from "./pages/Home/HomePage";
 import AdminResponsablesList from "./pages/admin/responsables/List";
 import AdminResponsableForm from "./pages/admin/responsables/Form";
 
@@ -32,6 +32,8 @@ import GenerarClasificados from "./pages/responsable/GenerarClasificados";
 import EvaluadorPanel from "./pages/evaluador/Panel";
 import IngresarNotas from "./pages/evaluador/IngresarNotas";
 
+
+
 import "./index.css";
 import LogCambiosNotas from "./pages/responsable/LogCambiosNotas";
 import FaseFinal from "./pages/responsable/FaseFinal";
@@ -41,17 +43,19 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+          <Route path="/" element={<OlimpiadasHome />} />
+          <Route path="/olimpiadas" element={<OlimpiadasHome />} />
           {/* Si ya hay sesión, evita /login y redirige al destino por defecto */}
           <Route element={<RedirectIfAuth to="/dashboard" />}>
             <Route path="/login" element={<LoginPage />} />
           </Route>
 
           {/* Público */}
-          <Route path="/" element={<HomePage />} />
           <Route path="/no-autorizado" element={<NotAuth />} />
+          
           {/* Protegido (logueado) */}
           <Route element={<RequireAuth />}>
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/" element={<Dashboard />} />
             <Route path="/dashboard" element={<Dashboard />} />
 
             {/* ADMINISTRADOR */}

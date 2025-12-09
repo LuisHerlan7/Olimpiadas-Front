@@ -81,11 +81,22 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen grid place-items-center bg-gradient-to-br from-slate-950 via-slate-900 to-cyan-950 px-4 py-8">
-      <form
-        onSubmit={onSubmit}
-        aria-label="Formulario de acceso al sistema OH SanSi"
-        className="relative w-full max-w-md rounded-3xl border border-white/10 bg-slate-900/70 backdrop-blur-xl shadow-2xl px-6 py-7 md:px-8 md:py-9"
-      >
+      <div className="w-full max-w-md">
+        <button
+          type="button"
+          onClick={() => nav("/")}
+          className="mb-4 flex items-center gap-2 text-slate-300 hover:text-white transition font-medium text-sm"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+            <path d="M15 19l-7-7 7-7" />
+          </svg>
+          Volver al inicio
+        </button>
+        <form
+          onSubmit={onSubmit}
+          aria-label="Formulario de acceso al sistema OH SanSi"
+          className="relative w-full rounded-3xl border border-white/10 bg-slate-900/70 backdrop-blur-xl shadow-2xl px-6 py-7 md:px-8 md:py-9"
+        >
         <div className="pointer-events-none absolute -inset-1 -z-10 rounded-3xl bg-gradient-to-tr from-cyan-400 to-indigo-500 opacity-30 blur-2xl" />
 
         {/* Selector de tipo de acceso */}
@@ -217,7 +228,8 @@ export default function LoginPage() {
         <p className="mt-4 text-center text-xs text-slate-400">
           Acceso por roles: Administrador, Responsable Académico, Evaluador.
         </p>
-      </form>
+        </form>
+      </div>
     </div>
   );
 }
