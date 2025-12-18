@@ -22,6 +22,7 @@ export default function AdminAreasPage() {
   
   const [confirmStep, setConfirmStep] = useState<number | null>(null); // paso 1 o 2
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [codigosDuplicados, setCodigosDuplicados] = useState<string[]>([]);
 
   useEffect(() => {
     let mounted = true;
@@ -30,6 +31,13 @@ export default function AdminAreasPage() {
       try {
         const a = await listAreas({ per_page: 1000 });
         if (!mounted) return;
+        
+        // Debug: verificar qué datos llegan
+        console.log("📦 Áreas recibidas del backend:", a);
+        if (a && a.length > 0) {
+          console.log("📋 Primera área ejemplo:", a[0]);
+          console.log("🔍 Campo codigo en primera área:", a[0]?.codigo);
+        }
         
         // Obtener todos los inscritos una sola vez
         let allInscritos: any[] = [];
@@ -55,9 +63,45 @@ export default function AdminAreasPage() {
             return false;
           }).length;
           
-          return { ...area, inscritos_count: count };
+          // Preservar explícitamente todos los campos del área, incluyendo codigo
+          const areaConConteo = {
+            id: area.id,
+            nombre: area.nombre,
+            codigo: area.codigo, // Asegurar que codigo se preserve
+            descripcion: area.descripcion,
+            activo: area.activo,
+            inscritos_count: count
+          };
+          
+          // Debug para la primera área
+          if (area.id === a[0]?.id) {
+            console.log("🔍 Área después del mapeo:", areaConConteo);
+            console.log("🔍 Código preservado:", areaConConteo.codigo);
+          }
+          
+          return areaConConteo;
         });
         
+        // Verificar códigos duplicados
+        const codigosMap = new Map<string, number[]>();
+        areasConConteo.forEach((area, index) => {
+          if (area.codigo) {
+            const codigoUpper = area.codigo.toUpperCase();
+            if (!codigosMap.has(codigoUpper)) {
+              codigosMap.set(codigoUpper, []);
+            }
+            codigosMap.get(codigoUpper)!.push(area.id!);
+          }
+        });
+        
+        const duplicados: string[] = [];
+        codigosMap.forEach((ids, codigo) => {
+          if (ids.length > 1) {
+            duplicados.push(codigo);
+          }
+        });
+        
+        setCodigosDuplicados(duplicados);
         setAreas(areasConConteo || []);
       } catch (err) {
         console.error("Error al cargar áreas:", err);
@@ -201,6 +245,17 @@ export default function AdminAreasPage() {
           </div>
         )}
         
+        {codigosDuplicados.length > 0 && (
+          <div className="mb-6 rounded-lg border border-red-700 bg-red-900/30 px-4 py-3 text-red-200">
+            <p className="text-sm font-medium">
+              ⚠️ Advertencia: Se encontraron códigos duplicados: {codigosDuplicados.join(', ')}
+            </p>
+            <p className="text-xs mt-1 text-red-300">
+              Por favor, edita las áreas para corregir los códigos duplicados.
+            </p>
+          </div>
+        )}
+        
         <section className="mb-6">
           <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-900/60 p-6 backdrop-blur-xl shadow-2xl">
             <div className="pointer-events-none absolute -inset-1 -z-10 rounded-3xl bg-gradient-to-tr from-cyan-400 to-indigo-500 opacity-20 blur-2xl" />
@@ -253,11 +308,28 @@ export default function AdminAreasPage() {
                   ) : (
                     areas.map((a: AreaWithInscritos) => {
                       const hasInscritos = (a.inscritos_count || 0) > 0;
+                      // Debug: verificar qué tiene cada área
+                      if (!a.codigo && a.id) {
+                        console.log(`⚠️ Área ${a.id} (${a.nombre}) no tiene código:`, a);
+                      }
+                      
                       return (
                         <tr key={a.id} className={confirmStep === a.id ? "bg-red-900/20" : "hover:bg-slate-800/30"}>
                           <td className="py-2.5 px-2 text-slate-300 text-xs">{a.id}</td>
                           <td className="py-2.5 px-3 text-slate-300 font-medium">{a.nombre}</td>
-                          <td className="py-2.5 px-2 text-slate-300 text-center text-xs">{a.codigo ?? "—"}</td>
+                          <td className="py-2.5 px-2 text-center text-xs">
+                            {a.codigo && a.codigo.trim() !== '' ? (
+                              <span className={`font-mono font-semibold px-2 py-1 rounded border ${
+                                codigosDuplicados.includes(a.codigo.toUpperCase())
+                                  ? 'bg-red-900/50 border-red-700 text-red-300'
+                                  : 'bg-slate-800/50 border-slate-700 text-slate-300'
+                              }`}>
+                                {a.codigo}
+                              </span>
+                            ) : (
+                              <span className="text-slate-500 italic" title={`Área ID: ${a.id}`}>—</span>
+                            )}
+                          </td>
                           <td className={`py-2.5 px-2 text-center text-xs font-medium ${hasInscritos ? "text-amber-400" : "text-slate-400"}`}>
                             {a.inscritos_count || 0}
                           </td>
