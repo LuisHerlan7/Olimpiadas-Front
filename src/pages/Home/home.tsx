@@ -507,7 +507,7 @@ const OlimpiadasHome: React.FC = () => {
             </div>
             <div className="flex items-center space-x-2">
               <span className="text-2xl">📅</span>
-              <span className="text-lg">1-15 Diciembre</span>
+              <span className="text-lg">Del 1 al 25 de Diciembre</span>
             </div>
           </div>
         </div>

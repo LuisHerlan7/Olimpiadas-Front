@@ -159,6 +159,32 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Acerca de */}
+      <section className="px-4 py-16 bg-gradient-to-b from-slate-950/50 to-slate-900/50">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
+              Acerca de OH SanSi
+            </h2>
+            <p className="text-slate-400 mt-2">Conoce más sobre nuestro sistema</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="rounded-2xl border border-white/10 p-6 backdrop-blur-sm bg-slate-900/50 hover:border-cyan-400/40 transition">
+              <h3 className="text-xl font-bold text-white mb-4">Misión</h3>
+              <p className="text-slate-300">
+                Facilitar la gestión integral de olimpiadas académicas, promoviendo la excelencia educativa y el desarrollo de habilidades en estudiantes de la Universidad Mayor de San Simón.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-white/10 p-6 backdrop-blur-sm bg-slate-900/50 hover:border-cyan-400/40 transition">
+              <h3 className="text-xl font-bold text-white mb-4">Visión</h3>
+              <p className="text-slate-300">
+                Ser la plataforma líder en evaluación y clasificación de competencias académicas, contribuyendo al crecimiento intelectual de la comunidad universitaria.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Áreas de Competencia */}
       <section className="px-4 py-16">
         <div className="container mx-auto max-w-6xl">
@@ -196,6 +222,39 @@ export default function HomePage() {
           {conn === "ok" ? "Conectado" : conn === "error" ? "Sin conexión" : "Verificando..."}
         </span>
       </div>
+
+      {/* Footer */}
+      <footer className="bg-slate-900/80 backdrop-blur-xl border-t border-white/10">
+        <div className="container mx-auto px-4 py-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
+            <div>
+              <h3 className="text-lg font-bold text-white mb-4">OH SanSi</h3>
+              <p className="text-slate-400 text-sm">
+                Sistema integral para la gestión y evaluación de olimpiadas académicas de la Universidad Mayor de San Simón.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-white mb-4">Enlaces</h3>
+              <ul className="space-y-2 text-slate-400 text-sm">
+                <li><a href="#" className="hover:text-cyan-400 transition">Inicio</a></li>
+                <li><a href="#" className="hover:text-cyan-400 transition">Resultados</a></li>
+                <li><a href="#" className="hover:text-cyan-400 transition">Contacto</a></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-white mb-4">Contacto</h3>
+              <p className="text-slate-400 text-sm">
+                Universidad Mayor de San Simón<br />
+                Cochabamba, Bolivia<br />
+                Email: info@umss.edu.bo
+              </p>
+            </div>
+          </div>
+          <div className="mt-8 pt-8 border-t border-white/10 text-center text-slate-400 text-sm">
+            <p>&copy; 2025 Universidad Mayor de San Simón. Todos los derechos reservados.</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

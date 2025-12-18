@@ -20,9 +20,9 @@ export default function LoginPage() {
   const nav = useNavigate();
   const { refresh } = useAuth();
 
-  const [accessKind, setAccessKind] = useState<AccessKind>("admin");
+  const [accessKind] = useState<AccessKind>("admin");
   const [correo, setCorreo] = useState("");
-  const [secret, setSecret] = useState(""); // password (admin) o CI (responsable/evaluador)
+  const [secret, setSecret] = useState(""); // password
   const [verPass, setVerPass] = useState(false);
   const [capsOn, setCapsOn] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -33,9 +33,8 @@ export default function LoginPage() {
   const puedeEnviar = useMemo(() => {
     if (loading) return false;
     if (!correoValido) return false;
-    if (accessKind === "admin") return secret.length >= 6; // mínimo contraseña
-    return secret.trim().length >= 3; // CI mínima
-  }, [loading, correoValido, accessKind, secret]);
+    return secret.length >= 6; // mínimo contraseña
+  }, [loading, correoValido, secret]);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -48,7 +47,7 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      // /auth/login debe manejar: admin (password) y responsable/evaluador (CI)
+      // /auth/login debe manejar: admin (password)
       const data = await login(correo.trim(), secret);
 
       if (!data.token || !data.user) throw new Error("No se recibió token/usuario del servidor.");
@@ -73,11 +72,11 @@ export default function LoginPage() {
     return () => document.body.classList.remove("bg-slate-950");
   }, []);
 
-  const esAdmin = accessKind === "admin";
-  const etiquetaSecret = esAdmin ? "Contraseña" : (accessKind === "responsable" ? "CI (Responsable)" : "CI (Evaluador)");
-  const placeholderSecret = esAdmin ? "••••••••" : "Ej: 12345678";
-  const tipoSecret = esAdmin ? (verPass ? "text" : "password") : "text";
-  const autoCompleteSecret = esAdmin ? "current-password" : "off";
+  const esAdmin = true;
+  const etiquetaSecret = "Contraseña";
+  const placeholderSecret = "••••••••";
+  const tipoSecret = verPass ? "text" : "password";
+  const autoCompleteSecret = "current-password";
 
   return (
     <div className="min-h-screen grid place-items-center bg-gradient-to-br from-slate-950 via-slate-900 to-cyan-950 px-4 py-8">
@@ -99,43 +98,6 @@ export default function LoginPage() {
         >
         <div className="pointer-events-none absolute -inset-1 -z-10 rounded-3xl bg-gradient-to-tr from-cyan-400 to-indigo-500 opacity-30 blur-2xl" />
 
-        {/* Selector de tipo de acceso */}
-        <div className="mb-5 grid grid-cols-3 gap-2">
-          <button
-            type="button"
-            onClick={() => setAccessKind("admin")}
-            className={`rounded-xl px-4 py-2 text-sm font-semibold transition border ${
-              accessKind === "admin"
-                ? "bg-cyan-500 text-slate-900 border-cyan-400"
-                : "bg-slate-800/60 text-slate-200 border-white/10 hover:border-cyan-400/40"
-            }`}
-          >
-            Administrador
-          </button>
-          <button
-            type="button"
-            onClick={() => setAccessKind("responsable")}
-            className={`rounded-xl px-4 py-2 text-sm font-semibold transition border ${
-              accessKind === "responsable"
-                ? "bg-cyan-500 text-slate-900 border-cyan-400"
-                : "bg-slate-800/60 text-slate-200 border-white/10 hover:border-cyan-400/40"
-            }`}
-          >
-            Responsable
-          </button>
-          <button
-            type="button"
-            onClick={() => setAccessKind("evaluador")}
-            className={`rounded-xl px-4 py-2 text-sm font-semibold transition border ${
-              accessKind === "evaluador"
-                ? "bg-cyan-500 text-slate-900 border-cyan-400"
-                : "bg-slate-800/60 text-slate-200 border-white/10 hover:border-cyan-400/40"
-            }`}
-          >
-            Evaluador
-          </button>
-        </div>
-
         <div className="mb-6 text-center">
           <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-2xl bg-cyan-500/20">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -148,7 +110,7 @@ export default function LoginPage() {
         </div>
 
         <label htmlFor="correo" className="mb-1 block text-sm text-slate-300">
-          Correo institucional
+          Correo
         </label>
         <div className="relative mb-4">
           <input

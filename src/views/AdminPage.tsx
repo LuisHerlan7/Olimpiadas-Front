@@ -188,7 +188,49 @@ export default function AdminPage() {
                 />
               </svg>
             </span>
-          </Link>       
+          </Link>
+
+          {/* Roles */}
+          <Link
+            to="/admin/roles"
+            className="group relative overflow-hidden rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-xl transition hover:border-cyan-400/40 hover:bg-slate-900/80"
+          >
+            <div className="pointer-events-none absolute -inset-1 -z-10 rounded-3xl bg-gradient-to-tr from-cyan-400/20 to-indigo-500/20 opacity-50 blur-2xl group-hover:opacity-80" />
+            <div className="mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-cyan-500/20">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 12c2.5 0 4.5-2 4.5-4.5S14.5 3 12 3 7.5 5 7.5 7.5 9.5 12 12 12zM5 21v-1c0-2.5 3.5-4 7-4s7 1.5 7 4v1H5z" stroke="#22d3ee" strokeWidth="1.6" strokeLinecap="round"/>
+              </svg>
+            </div>
+            <h3 className="text-lg font-bold text-white">Roles</h3>
+            <p className="mt-1 text-sm text-slate-300">Gestiona los roles del sistema.</p>
+            <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-cyan-300">
+              Entrar
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+              </svg>
+            </span>
+          </Link>
+
+          {/* Competencias */}
+          <Link
+            to="/admin/competencias"
+            className="group relative overflow-hidden rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-xl transition hover:border-cyan-400/40 hover:bg-slate-900/80"
+          >
+            <div className="pointer-events-none absolute -inset-1 -z-10 rounded-3xl bg-gradient-to-tr from-cyan-400/20 to-indigo-500/20 opacity-50 blur-2xl group-hover:opacity-80" />
+            <div className="mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-cyan-500/20">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="#22d3ee" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <h3 className="text-lg font-bold text-white">Competencias</h3>
+            <p className="mt-1 text-sm text-slate-300">Gestiona las competencias del sistema.</p>
+            <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-cyan-300">
+              Entrar
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+              </svg>
+            </span>
+          </Link>
         </section>
       </main>
     </div>

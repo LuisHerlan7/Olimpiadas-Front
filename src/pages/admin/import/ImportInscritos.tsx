@@ -109,7 +109,7 @@ export default function ImportInscritos() {
       <header className="sticky top-0 z-20 border-b border-white/10 bg-slate-900/60 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 md:px-6">
           <div>
-            <h1 className="text-lg font-bold text-white">ID:3 Importar inscritos desde CSV</h1>
+            <h1 className="text-lg font-bold text-white">Importar inscritos desde CSV</h1>
             <p className="text-xs text-slate-400">Validación + reporte por fila + resumen + log</p>
           </div>
           <Link

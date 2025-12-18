@@ -151,7 +151,7 @@ export default function Login() {
 
           {/* Correo */}
           <label htmlFor="correo" className="mb-1 block text-sm text-slate-300">
-            Correo institucional
+            Correo 
           </label>
           <div className="relative mb-4">
             <input

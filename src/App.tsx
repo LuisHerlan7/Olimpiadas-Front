@@ -21,6 +21,8 @@ import { RequireAuth, RequireRole, RequireAnyRole, RedirectIfAuth } from "./rout
 import LoginPage from "./views/LoginPage";
 import Dashboard from "./views/Dashboard";
 import AdminPage from "./views/AdminPage";
+import RolesPage from "./views/RolesPage";
+import CompetenciasPage from "./views/CompetenciasPage";
 import NotAuth from "./views/NotAuth";
 
 // Responsable
@@ -77,6 +79,8 @@ export default function App() {
               <Route path="/admin/inscritos" element={<AdminInscritosList />} />
               <Route path="/admin/fases" element={<FasesPage />} />
               <Route path="/admin/bitacoras" element={<BitacorasPage />} />
+              <Route path="/admin/roles" element={<RolesPage />} />
+              <Route path="/admin/competencias" element={<CompetenciasPage />} />
             </Route>
 
             {/* RESPONSABLE */}
