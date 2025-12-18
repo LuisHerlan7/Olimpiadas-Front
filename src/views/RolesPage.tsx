@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { api } from "../api";
 
 interface Rol {
   id: number;
@@ -41,23 +42,28 @@ export default function RolesPage() {
     setLoading(true);
     try {
       // Usamos promesas individuales para mejor control de errores
-      const rolesRes = await fetch('/api/roles').catch(() => null);
-      const usersRes = await fetch('/api/users').catch(() => null);
+      const [rolesRes, usersRes] = await Promise.allSettled([
+        api.get<Rol[]>('/roles'),
+        api.get<User[]>('/users')
+      ]);
 
-      let rolesData = [];
-      let usersData = [];
+      let rolesData: Rol[] = [];
+      let usersData: User[] = [];
 
-      if (rolesRes && rolesRes.ok) {
-        rolesData = await rolesRes.json();
+      if (rolesRes.status === 'fulfilled') {
+        rolesData = Array.isArray(rolesRes.value.data) ? rolesRes.value.data : [];
+      } else {
+        console.error("Error cargando roles:", rolesRes.reason);
       }
       
-      if (usersRes && usersRes.ok) {
-        usersData = await usersRes.json();
+      if (usersRes.status === 'fulfilled') {
+        usersData = Array.isArray(usersRes.value.data) ? usersRes.value.data : [];
+      } else {
+        console.error("Error cargando usuarios:", usersRes.reason);
       }
 
-      // Validamos que lo recibido sea un array antes de guardar
-      setRoles(Array.isArray(rolesData) ? rolesData : []);
-      setUsers(Array.isArray(usersData) ? usersData : []);
+      setRoles(rolesData);
+      setUsers(usersData);
       
     } catch (error) {
       console.error("Error cargando datos:", error);
@@ -69,17 +75,20 @@ export default function RolesPage() {
   const handleCreateRole = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('/api/roles', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newRole)
-      });
-      if (!response.ok) throw new Error('Error al crear el rol');
-      
+      await api.post('/roles', newRole);
       setNewRole({ nombre: '', permissions: [] });
       fetchData();
     } catch (error: any) {
-      alert('Error creando rol: ' + (error.message || 'Desconocido'));
+      const errorMessage = error?.response?.data?.message || error?.message || "No se pudo crear el rol";
+      const errors = error?.response?.data?.errors;
+      
+      if (errors) {
+        const errorDetails = Object.values(errors).flat().join(". ");
+        alert(`${errorMessage}. ${errorDetails}`);
+      } else {
+        alert(errorMessage);
+      }
+      console.error("Error creando rol:", error);
     }
   };
 
@@ -100,18 +109,14 @@ export default function RolesPage() {
   const handleSaveUser = async () => {
     if (!editingUser || newRolId === null) return;
     try {
-      const response = await fetch(`/api/users/${editingUser.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rol_id: newRolId })
-      });
-      if (!response.ok) throw new Error('Error al actualizar');
-      
+      await api.put(`/users/${editingUser.id}`, { rol_id: newRolId });
       setEditingUser(null);
+      setNewRolId(null);
       fetchData();
-    } catch (error) {
-      console.error(error);
-      alert("Error al guardar usuario");
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || error?.message || "No se pudo actualizar el usuario";
+      alert(errorMessage);
+      console.error("Error actualizando usuario:", error);
     }
   };
 
